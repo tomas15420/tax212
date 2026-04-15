@@ -1,7 +1,8 @@
 package eu.tmach.trading212.client;
 
-import eu.tmach.trading212.dto.T212OrderPage;
-import eu.tmach.trading212.dto.T212OrderWrapper;
+import eu.tmach.trading212.dto.trading212.T212AccountSummary;
+import eu.tmach.trading212.dto.trading212.T212OrderPage;
+import eu.tmach.trading212.dto.trading212.T212OrderWrapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -76,5 +77,26 @@ public class T212Client {
 
         log.info("Synchronizace úspěšně dokončena. Celkem staženo {} objednávek.", allOrders.size());
         return allOrders;
+    }
+
+    public T212AccountSummary getAccountSummary() {
+        log.info("Získávám stav účtu z T212 API");
+
+        return t212RestClient.get()
+                .uri("/equity/account/summary")
+                .retrieve()
+                .onStatus(HttpStatusCode::isError, (request, response) -> {
+                    int code = response.getStatusCode().value();
+                    switch (code) {
+                        case 400 -> throw new RuntimeException("400: Špatné parametry filtrování.");
+                        case 401 -> throw new RuntimeException("401: Neplatný API klíč.");
+                        case 403 -> throw new RuntimeException("403: Chybějící scope (account).");
+                        case 408 -> throw new RuntimeException("408: Timeout při volání T212.");
+                        case 429 -> log.error("429: Rate limit překročen (i přes ochranu v interceptoru)!");
+                        default -> throw new RuntimeException("Chyba API: " + code);
+                    }
+                    throw new RuntimeException("Chyba při získávání stavu účtu: " + code);
+                })
+                .body(T212AccountSummary.class);
     }
 }

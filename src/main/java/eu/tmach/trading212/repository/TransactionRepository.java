@@ -16,8 +16,6 @@ import java.util.Optional;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     Optional<Transaction> findFirstByOrderByFilledAtDesc();
 
-    boolean existsByT212id(String t212id);
-
     List<Transaction> findAllByTickerAndSideAndRemainingQuantityGreaterThanOrderByFilledAtAsc(
             String ticker, TradeSide side, BigDecimal remainingQuantity);
 

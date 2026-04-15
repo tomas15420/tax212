@@ -1,4 +1,4 @@
-package eu.tmach.trading212.dto;
+package eu.tmach.trading212.dto.trading212;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;

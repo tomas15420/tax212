@@ -1,7 +1,11 @@
 package eu.tmach.trading212.service;
 
 import eu.tmach.trading212.client.T212Client;
-import eu.tmach.trading212.dto.*;
+import eu.tmach.trading212.dto.InstrumentDto;
+import eu.tmach.trading212.dto.PortfolioStatusDto;
+import eu.tmach.trading212.dto.TaxReportDto;
+import eu.tmach.trading212.dto.TransactionDto;
+import eu.tmach.trading212.dto.trading212.T212OrderWrapper;
 import eu.tmach.trading212.model.Instrument;
 import eu.tmach.trading212.model.TradeSide;
 import eu.tmach.trading212.model.Transaction;

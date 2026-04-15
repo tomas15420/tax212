@@ -1,8 +1,11 @@
 package eu.tmach.trading212.controller;
 
+import eu.tmach.trading212.dto.AccountSummaryDto;
 import eu.tmach.trading212.dto.PortfolioStatusDto;
 import eu.tmach.trading212.dto.TaxReportDto;
 import eu.tmach.trading212.dto.TransactionDto;
+import eu.tmach.trading212.service.AccountDetailService;
+import eu.tmach.trading212.service.SyncService;
 import eu.tmach.trading212.service.TransactionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -17,6 +20,19 @@ import java.util.List;
 @RequestMapping("/api/test")
 public class TestController {
     private final TransactionService transactionService;
+    private final AccountDetailService accountDetailService;
+    private final SyncService syncService;
+
+    @GetMapping("/syncAll")
+    public ResponseEntity<?> syncALl() {
+        syncService.performFullSync();
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/summary")
+    public ResponseEntity<AccountSummaryDto> getSummary() {
+        return ResponseEntity.ok(accountDetailService.getSummary());
+    }
 
     @GetMapping("/start")
     public ResponseEntity<String> startTest() {

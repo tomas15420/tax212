@@ -1,6 +1,6 @@
 package eu.tmach.trading212.service;
 
-import eu.tmach.trading212.dto.T212InstrumentDetail;
+import eu.tmach.trading212.dto.trading212.T212InstrumentDetail;
 import eu.tmach.trading212.model.Instrument;
 import eu.tmach.trading212.repository.InstrumentRepository;
 import lombok.RequiredArgsConstructor;

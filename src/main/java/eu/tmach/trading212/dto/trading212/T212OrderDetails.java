@@ -1,4 +1,4 @@
-package eu.tmach.trading212.dto;
+package eu.tmach.trading212.dto.trading212;
 
 import eu.tmach.trading212.model.TradeSide;
 
