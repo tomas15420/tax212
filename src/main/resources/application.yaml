@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: trading212
+  profiles:
+    active: dev

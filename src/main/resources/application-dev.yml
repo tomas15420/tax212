@@ -1,0 +1,31 @@
+spring:
+  datasource:
+    url: jdbc:sqlite:fifolio.db
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # OpenAPI / Swagger konfigurace
+  springdoc:
+    swagger-ui:
+      path: /swagger-ui.html
+    api-docs:
+      path: /v3/api-docs
+
+# Vlastní nastavení pro aplikaci
+trading212:
+  api:
+    url: https://live.trading212.com/api/v0
+    username: ${T212_USERNAME}
+    password: ${T212_PASSWORD}
+tax:
+  limits:
+    stock-sales-czk: 100000
+    other-income-czk: 50000
+    time-test-years: 3
