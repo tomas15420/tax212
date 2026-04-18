@@ -1,19 +1,23 @@
 package eu.tmach.trading212.service;
 
 import eu.tmach.trading212.client.T212Client;
-import eu.tmach.trading212.dto.InstrumentDto;
-import eu.tmach.trading212.dto.PortfolioStatusDto;
-import eu.tmach.trading212.dto.TaxReportDto;
-import eu.tmach.trading212.dto.TransactionDto;
+import eu.tmach.trading212.dto.*;
+import eu.tmach.trading212.dto.filter.TransactionFilter;
 import eu.tmach.trading212.dto.trading212.T212OrderWrapper;
 import eu.tmach.trading212.model.Instrument;
 import eu.tmach.trading212.model.TradeSide;
 import eu.tmach.trading212.model.Transaction;
 import eu.tmach.trading212.repository.TransactionRepository;
+import eu.tmach.trading212.repository.spec.TransactionSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -78,28 +82,14 @@ public class TransactionService {
     }
 
 
-    public List<TransactionDto> getTransactions() {
-        return transactionRepository.findAll().stream()
-                .map(t -> TransactionDto.builder()
-                        .id(t.getId())
-                        .t212id(t.getT212id())
-                        .ticker(t.getTicker())
-                        .side(t.getSide())
-                        .quantity(t.getQuantity())
-                        .price(t.getPrice())
-                        .netValue(t.getNetValue())
-                        .fxRate(t.getFxRate())
-                        .filledAt(t.getFilledAt())
-                        .instrument(t.getInstrument() != null ?
-                                InstrumentDto.builder()
-                                        .name(t.getInstrument().getName())
-                                        .isin(t.getInstrument().getIsin())
-                                        .ticker(t.getInstrument().getTicker())
-                                        .currency(t.getInstrument().getCurrency())
-                                        .build()
-                                : null)
-                        .build())
-                .toList();
+    public PagedResponse<TransactionDto> getTransactions(TransactionFilter filter) {
+        TransactionFilter safeFilter = (filter != null) ? filter : new TransactionFilter();
+
+        Specification<Transaction> spec = TransactionSpecifications.withFilter(safeFilter);
+
+        PagedResponse<Transaction> transactionPage = PagedResponse.from(transactionRepository.findAll(spec, filter.toPageable()));
+
+        return transactionPage.map(this::mapToSimpleDto);
     }
 
     public List<PortfolioStatusDto> getAvailableAssets(LocalDateTime toDate) {
@@ -163,14 +153,12 @@ public class TransactionService {
                 .fxRate(t.getFxRate())
                 .netValue(t.getNetValue())
                 .filledAt(t.getFilledAt())
-                .instrument(t.getInstrument() != null ?
-                        InstrumentDto.builder()
+                .instrument(InstrumentDto.builder()
                                 .name(t.getInstrument().getName())
                                 .isin(t.getInstrument().getIsin())
                                 .ticker(t.getInstrument().getTicker())
                                 .currency(t.getInstrument().getCurrency())
-                                .build()
-                        : null)
+                                .build())
                 .build();
     }
 

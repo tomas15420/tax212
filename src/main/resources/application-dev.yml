@@ -17,7 +17,6 @@ spring:
       path: /swagger-ui.html
     api-docs:
       path: /v3/api-docs
-
 # Vlastní nastavení pro aplikaci
 trading212:
   api:
