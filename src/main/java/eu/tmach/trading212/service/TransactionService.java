@@ -130,7 +130,7 @@ public class TransactionService {
                                     .build()
                                     : null)
                             .availableQuantity(totalRemaining)
-                            .taxFreeQuanitity(taxFree)
+                            .taxFreeQuantity(taxFree)
                             .inTaxQuantity(taxable)
                             .build();
                 })

@@ -4,7 +4,10 @@ import eu.tmach.trading212.model.TradeSide;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.PastOrPresent;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.springframework.format.annotation.DateTimeFormat;
 
@@ -12,9 +15,9 @@ import java.time.LocalDate;
 
 @Data
 @EqualsAndHashCode(callSuper = true)
-@SuperBuilder // Nutné pro dědičnost builderu
-@NoArgsConstructor // Pro Spring
-@AllArgsConstructor // Pokud potřebuješ Builder
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
 @ValidSortFields(
         allowed = {
                 "id",
@@ -30,7 +33,7 @@ import java.time.LocalDate;
 )
 public class TransactionFilter extends PageableFilter {
     @Size(min = 1, max = 20, message = "Ticker musí mít 1 až 20 znaků")
-    @Schema(description = "Ticker symbol instrumentu (vyhledávání like)", example = "DHER_US_EQ")
+    @Schema(description = "Ticker symbol instrumentu", example = "DHER_US_EQ")
     private String ticker;
 
     @Schema(description = "Strana obchodu (BUY/SELL)", example = "BUY")

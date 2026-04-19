@@ -124,6 +124,7 @@ public class T212Client {
                     .body(T212DividendPage.class);
 
             if (page != null && page.items() != null) {
+                int initialSize = allDividends.size();
                 for (var item : page.items()) {
                     if (stopReference != null && stopReference.equals(item.reference())) {
                         log.info("Dosáhl jsem stopReference: {}. Končím stahování.", stopReference);
@@ -133,7 +134,7 @@ public class T212Client {
                     allDividends.add(item);
                 }
 
-                log.info("Přidáno {} dividend (Celkem: {})", page.items().size(), allDividends.size());
+                log.info("Přidáno {} dividend (Celkem: {})", allDividends.size() - initialSize, allDividends.size());
 
                 String next = page.nextPagePath();
                 if (next != null && !stopReached) {

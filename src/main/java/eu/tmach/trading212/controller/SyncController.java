@@ -1,6 +1,7 @@
 package eu.tmach.trading212.controller;
 
 import eu.tmach.trading212.service.AccountDetailService;
+import eu.tmach.trading212.service.DividendService;
 import eu.tmach.trading212.service.SyncService;
 import eu.tmach.trading212.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -8,7 +9,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +23,7 @@ public class SyncController {
     private final SyncService syncService;
     private final TransactionService transactionService;
     private final AccountDetailService accountDetailService;
+    private final DividendService dividendService;
 
     @Operation(
             summary = "Kompletní synchronizace",
@@ -52,6 +53,19 @@ public class SyncController {
     }
 
     @Operation(
+            summary = "Synchronizace dividend",
+            description = "Aktualizuje seznam dividend od posledního známého stavu."
+    )
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Dividendy byly úspěšně aktualizovány"),
+    })
+    @PostMapping("/dividends")
+    public ResponseEntity<Void> syncDividends() {
+        dividendService.syncAllDividends();
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(
             summary = "Synchronizace detailů účtu",
             description = "Aktualizuje aktuální zůstatky, volnou hotovost a nastavení účtu."
     )
@@ -59,8 +73,8 @@ public class SyncController {
             @ApiResponse(responseCode = "200", description = "Detaily účtu byly úspěšně synchronizovány"),
     })
     @PostMapping("/account")
-    public ResponseEntity<Void> syncAccountDetails(){
-        // accountDetailService.syncAccountInfo(); // Předpokládané volání
+    public ResponseEntity<Void> syncAccountDetails() {
+        accountDetailService.syncAccountSummary();
         return ResponseEntity.ok().build();
     }
 }

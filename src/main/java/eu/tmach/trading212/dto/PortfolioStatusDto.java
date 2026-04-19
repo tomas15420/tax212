@@ -22,7 +22,7 @@ public record PortfolioStatusDto(
         BigDecimal availableQuantity,
 
         @Schema(description = "Množství, které již splnilo časový test a je osvobozeno od daně", example = "4.20")
-        BigDecimal taxFreeQuanitity,
+        BigDecimal taxFreeQuantity,
 
         @Schema(description = "Množství, které je stále v daňovém testu (držené kratší dobu)", example = "6.35")
         BigDecimal inTaxQuantity
