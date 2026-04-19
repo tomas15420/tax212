@@ -11,12 +11,21 @@ import org.springframework.stereotype.Service;
 public class SyncService {
     private final TransactionService transactionService;
     private final AccountDetailService accountDetailService;
+    private final DividendService dividendService;
 
     @Transactional
     public void performFullSync() {
         log.info("Spouštím plnou synchronizaci");
+
+        log.info("Spuštím synchronizaci transakcí");
         transactionService.syncAllTransactions();
+
+        log.info("Spouštím syncrhonizaci dividend");
+        dividendService.syncAllDividends();
+
+        log.info("Spouštím synchronizaci účtu");
         accountDetailService.syncAccountSummary();
+
         log.info("Kompletní synchronizace dokončena");
     }
 }

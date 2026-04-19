@@ -2,14 +2,17 @@ package eu.tmach.trading212.dto.trading212;
 
 import eu.tmach.trading212.model.DividendType;
 
+import java.math.BigDecimal;
+import java.time.OffsetDateTime;
+
 public record T212DividendItem(
-        Double amount,
-        Double amountInEuro,
+        BigDecimal amount,
+        BigDecimal amountInEuro,
         String currency,
-        Double grossAmountPerShare,
+        BigDecimal grossAmountPerShare,
         T212Instrument instrument,
-        String paidOn,
-        Double quantity,
+        OffsetDateTime paidOn,
+        BigDecimal quantity,
         String reference,
         String ticker,
         DividendType type

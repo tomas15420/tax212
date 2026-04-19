@@ -13,10 +13,6 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -77,7 +73,7 @@ public class TransactionService {
                 .year(year)
                 .totalSoldTaxFree(taxFreeSum)
                 .totalSoldTaxable(taxableSum)
-                .transactions(sales.stream().map(this::mapToSimpleDto).toList())
+                .transactions(sales.stream().map(this::mapToDto).toList())
                 .build();
     }
 
@@ -87,9 +83,9 @@ public class TransactionService {
 
         Specification<Transaction> spec = TransactionSpecifications.withFilter(safeFilter);
 
-        PagedResponse<Transaction> transactionPage = PagedResponse.from(transactionRepository.findAll(spec, filter.toPageable()));
+        PagedResponse<Transaction> transactionPage = PagedResponse.from(transactionRepository.findAll(spec, safeFilter.toPageable()));
 
-        return transactionPage.map(this::mapToSimpleDto);
+        return transactionPage.map(this::mapToDto);
     }
 
     public List<PortfolioStatusDto> getAvailableAssets(LocalDateTime toDate) {
@@ -127,11 +123,11 @@ public class TransactionService {
                             .ticker(ticker)
                             .instrument(instrument != null ?
                                     InstrumentDto.builder()
-                                            .name(instrument.getName())
-                                            .isin(instrument.getIsin())
-                                            .ticker(instrument.getTicker())
-                                            .currency(instrument.getCurrency())
-                                            .build()
+                                    .name(instrument.getName())
+                                    .isin(instrument.getIsin())
+                                    .ticker(instrument.getTicker())
+                                    .currency(instrument.getCurrency())
+                                    .build()
                                     : null)
                             .availableQuantity(totalRemaining)
                             .taxFreeQuanitity(taxFree)
@@ -142,7 +138,7 @@ public class TransactionService {
                 .toList();
     }
 
-    private TransactionDto mapToSimpleDto(Transaction t) {
+    private TransactionDto mapToDto(Transaction t) {
         return TransactionDto.builder()
                 .id(t.getId())
                 .t212id(t.getT212id())
@@ -154,11 +150,11 @@ public class TransactionService {
                 .netValue(t.getNetValue())
                 .filledAt(t.getFilledAt())
                 .instrument(InstrumentDto.builder()
-                                .name(t.getInstrument().getName())
-                                .isin(t.getInstrument().getIsin())
-                                .ticker(t.getInstrument().getTicker())
-                                .currency(t.getInstrument().getCurrency())
-                                .build())
+                        .name(t.getInstrument().getName())
+                        .isin(t.getInstrument().getIsin())
+                        .ticker(t.getInstrument().getTicker())
+                        .currency(t.getInstrument().getCurrency())
+                        .build())
                 .build();
     }
 

@@ -20,5 +20,6 @@ public class SortOrder {
 
     @Pattern(regexp = "^(?i)(asc|desc)$", message = "Směr musí být 'asc' nebo 'desc'")
     @Schema(description = "Směr řazení", example = "asc", allowableValues = {"asc", "desc"})
+    @Builder.Default
     private String dir = "asc";
 }
