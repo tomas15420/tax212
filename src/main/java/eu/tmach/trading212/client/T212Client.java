@@ -1,8 +1,6 @@
 package eu.tmach.trading212.client;
 
-import eu.tmach.trading212.dto.trading212.T212AccountSummary;
-import eu.tmach.trading212.dto.trading212.T212OrderPage;
-import eu.tmach.trading212.dto.trading212.T212OrderWrapper;
+import eu.tmach.trading212.dto.trading212.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
@@ -98,5 +96,57 @@ public class T212Client {
                     throw new RuntimeException("Chyba při získávání stavu účtu: " + code);
                 })
                 .body(T212AccountSummary.class);
+    }
+
+    public List<T212DividendItem> fetchAllDividends(String stopReference) {
+        List<T212DividendItem> allDividends = new ArrayList<>();
+        String currentPath = "/equity/history/dividends?limit=50";
+        boolean stopReached = false;
+
+        while (currentPath != null) {
+            log.info("Stahuji dividendy z T212: {}", currentPath);
+
+            String finalPath = currentPath;
+            T212DividendPage page = t212RestClient.get()
+                    .uri(finalPath)
+                    .retrieve()
+                    .onStatus(HttpStatusCode::isError, (request, response) -> {
+                        int code = response.getStatusCode().value();
+                        switch (code) {
+                            case 400 -> throw new RuntimeException("400: Špatné parametry filtrování.");
+                            case 401 -> throw new RuntimeException("401: Neplatný API klíč.");
+                            case 403 -> throw new RuntimeException("403: Chybějící scope (history:dividends).");
+                            case 408 -> throw new RuntimeException("408: Timeout při volání T212.");
+                            case 429 -> log.error("429: Rate limit překročen!");
+                            default -> throw new RuntimeException("Chyba API: " + code);
+                        }
+                    })
+                    .body(T212DividendPage.class);
+
+            if (page != null && page.items() != null) {
+                for (var item : page.items()) {
+                    if (stopReference != null && stopReference.equals(item.reference())) {
+                        log.info("Dosáhl jsem stopReference: {}. Končím stahování.", stopReference);
+                        stopReached = true;
+                        break;
+                    }
+                    allDividends.add(item);
+                }
+
+                log.info("Přidáno {} dividend (Celkem: {})", page.items().size(), allDividends.size());
+
+                String next = page.nextPagePath();
+                if (next != null && !stopReached) {
+                    currentPath = next.replace("/api/v0", "");
+                } else {
+                    currentPath = null;
+                }
+            } else {
+                currentPath = null;
+            }
+        }
+
+        log.info("Synchronizace dividend dokončena. Celkem {} záznamů.", allDividends.size());
+        return allDividends;
     }
 }

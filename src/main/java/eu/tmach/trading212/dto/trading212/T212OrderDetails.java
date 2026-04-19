@@ -9,6 +9,6 @@ public record T212OrderDetails(
         OrderStatus status,
         TradeSide side,
         String currency,
-        T212InstrumentDetail instrument
+        T212Instrument instrument
 ) {
 }

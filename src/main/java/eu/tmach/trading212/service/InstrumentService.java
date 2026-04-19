@@ -1,6 +1,6 @@
 package eu.tmach.trading212.service;
 
-import eu.tmach.trading212.dto.trading212.T212InstrumentDetail;
+import eu.tmach.trading212.dto.trading212.T212Instrument;
 import eu.tmach.trading212.model.Instrument;
 import eu.tmach.trading212.repository.InstrumentRepository;
 import lombok.RequiredArgsConstructor;
@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
 public class InstrumentService {
     private final InstrumentRepository instrumentRepository;
 
-    public Instrument getOrCreateInstrument(T212InstrumentDetail instrumentDetail) {
+    public Instrument getOrCreateInstrument(T212Instrument instrumentDetail) {
         return instrumentRepository.findByTicker(instrumentDetail.ticker())
                 .orElseGet(() -> {
                     Instrument newInstrument = Instrument.builder()
