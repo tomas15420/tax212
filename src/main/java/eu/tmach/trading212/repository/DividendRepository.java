@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -16,4 +17,6 @@ public interface DividendRepository extends JpaRepository<Dividend, Long> {
     @EntityGraph(attributePaths = {"instrument"})
     @NonNull
     List<Dividend> findAll();
+
+    List<Dividend> findAllByPaidOnBetween(LocalDateTime from, LocalDateTime to);
 }

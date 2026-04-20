@@ -25,7 +25,16 @@ public record TaxReportDto(
         )
         BigDecimal totalSoldTaxable,
 
+        @Schema(
+                description = "Celková hrubá výše přijatých dividend v CZK (před zdaněním v zahraničí)",
+                example = "12500.00"
+        )
+        BigDecimal totalDividendsPaid,
+
         @Schema(description = "Seznam všech realizovaných prodejních transakcí v daném roce")
-        List<TransactionDto> transactions
+        List<TransactionDto> transactions,
+
+        @Schema(description = "Seznam všech přijatých dividend v daném roce")
+        List<DividendDto> dividends
 ) {
 }

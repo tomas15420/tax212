@@ -2,10 +2,10 @@ package eu.tmach.trading212.service;
 
 import eu.tmach.trading212.client.T212Client;
 import eu.tmach.trading212.dto.DividendDto;
-import eu.tmach.trading212.dto.InstrumentDto;
 import eu.tmach.trading212.dto.PagedResponse;
 import eu.tmach.trading212.dto.filter.DividendFilter;
 import eu.tmach.trading212.dto.trading212.T212DividendItem;
+import eu.tmach.trading212.mapper.DividendMapper;
 import eu.tmach.trading212.model.Dividend;
 import eu.tmach.trading212.model.Instrument;
 import eu.tmach.trading212.repository.DividendRepository;
@@ -26,6 +26,8 @@ public class DividendService {
     private final DividendRepository dividendRepository;
 
     private final InstrumentService instrumentService;
+
+    private final DividendMapper dividendMapper;
 
     @Transactional
     public void syncAllDividends() {
@@ -60,20 +62,11 @@ public class DividendService {
     private void processAndSave(T212DividendItem remoteDividend) {
         Instrument instrument = instrumentService.getOrCreateInstrument(remoteDividend.instrument());
 
-        Dividend t = Dividend.builder()
-                .amount(remoteDividend.amount())
-                .amountInEuro(remoteDividend.amountInEuro())
-                .type(remoteDividend.type())
-                .paidOn(remoteDividend.paidOn().toLocalDateTime())
-                .grossAmountPerShare(remoteDividend.grossAmountPerShare())
-                .instrument(instrument)
-                .ticker(remoteDividend.ticker())
-                .t212id(remoteDividend.reference())
-                .currency(remoteDividend.currency())
-                .quantity(remoteDividend.quantity())
-                .build();
+        Dividend dividend = dividendMapper.toEntity(remoteDividend);
 
-        dividendRepository.save(t);
+        dividend.setInstrument(instrument);
+
+        dividendRepository.save(dividend);
     }
 
     public PagedResponse<DividendDto> getDividends(DividendFilter filter) {
@@ -83,28 +76,7 @@ public class DividendService {
 
         PagedResponse<Dividend> dividendPage = PagedResponse.from(dividendRepository.findAll(safeFilter.toPageable()));
 
-        return dividendPage.map(this::mapToDto);
-    }
-
-    private DividendDto mapToDto(Dividend d) {
-        return DividendDto.builder()
-                .id(d.getId())
-                .quantity(d.getQuantity())
-                .paidOn(d.getPaidOn())
-                .amount(d.getAmount())
-                .amountInEuro(d.getAmountInEuro())
-                .grossAmountPerShare(d.getGrossAmountPerShare())
-                .type(d.getType())
-                .ticker(d.getTicker())
-                .t212id(d.getT212id())
-                .currency(d.getCurrency())
-                .instrument(InstrumentDto.builder()
-                        .isin(d.getInstrument().getIsin())
-                        .name(d.getInstrument().getName())
-                        .currency(d.getInstrument().getCurrency())
-                        .ticker(d.getInstrument().getTicker())
-                        .build())
-                .build();
+        return dividendPage.map(dividendMapper::toDto);
     }
 
     public List<T212DividendItem> showDividends() {

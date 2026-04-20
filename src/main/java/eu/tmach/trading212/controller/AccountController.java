@@ -4,6 +4,7 @@ import eu.tmach.trading212.dto.AccountSummaryDto;
 import eu.tmach.trading212.dto.PortfolioStatusDto;
 import eu.tmach.trading212.dto.TaxReportDto;
 import eu.tmach.trading212.service.AccountDetailService;
+import eu.tmach.trading212.service.TaxService;
 import eu.tmach.trading212.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -28,6 +29,7 @@ import java.util.List;
 public class AccountController {
     private final AccountDetailService accountDetailService;
     private final TransactionService transactionService;
+    private final TaxService taxService;
 
     @Operation(
             summary = "Získat souhrn účtu",
@@ -81,6 +83,6 @@ public class AccountController {
     public ResponseEntity<TaxReportDto> getYearlyReport(
             @Parameter(description = "Kalendářní rok, za který se report generuje", example = "2023")
             @PathVariable Integer year) {
-        return ResponseEntity.ok(transactionService.getTaxReport(year));
+        return ResponseEntity.ok(taxService.getTaxReport(year));
     }
 }

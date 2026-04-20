@@ -3,6 +3,7 @@ package eu.tmach.trading212.service;
 import eu.tmach.trading212.client.T212Client;
 import eu.tmach.trading212.dto.AccountSummaryDto;
 import eu.tmach.trading212.dto.trading212.T212AccountSummary;
+import eu.tmach.trading212.mapper.AccountSummaryMapper;
 import eu.tmach.trading212.model.AccountDetail;
 import eu.tmach.trading212.model.AccountDetailKey;
 import eu.tmach.trading212.repository.AccountDetailRepository;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class AccountDetailService {
     private final AccountDetailRepository accountDetailRepository;
+    private final AccountSummaryMapper accountSummaryMapper;
     private final T212Client t212Client;
 
     @Transactional
@@ -27,14 +29,16 @@ public class AccountDetailService {
         log.info("Synchronizuji stav účtu");
         T212AccountSummary t212AccountSummary = t212Client.getAccountSummary();
 
-        save(AccountSummaryDto.builder()
-                .currency(t212AccountSummary.currency())
-                .totalValue(t212AccountSummary.totalValue())
-                .currentValue(t212AccountSummary.investments().currentValue())
-                .totalCost(t212AccountSummary.investments().totalCost())
-                .realizedProfitLoss(t212AccountSummary.investments().realizedProfitLoss())
-                .unrealizedProfitLoss(t212AccountSummary.investments().unrealizedProfitLoss())
-                .build());
+
+        save(accountSummaryMapper.toDto(t212AccountSummary));
+//        save(AccountSummaryDto.builder()
+//                .currency(t212AccountSummary.currency())
+//                .totalValue(t212AccountSummary.totalValue())
+//                .currentValue(t212AccountSummary.investments().currentValue())
+//                .totalCost(t212AccountSummary.investments().totalCost())
+//                .realizedProfitLoss(t212AccountSummary.investments().realizedProfitLoss())
+//                .unrealizedProfitLoss(t212AccountSummary.investments().unrealizedProfitLoss())
+//                .build());
     }
 
     public void save(AccountSummaryDto dto) {
