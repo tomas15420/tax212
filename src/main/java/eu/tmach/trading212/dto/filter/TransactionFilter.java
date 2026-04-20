@@ -25,11 +25,11 @@ import java.time.LocalDate;
                 "side",
                 "quantity",
                 "price",
-                "netValue",
+                "walletImpact",
                 "filledAt",
                 "instrument.name"
         },
-        message = "Řazení je povoleno pouze pro pole: id, ticker, side, quantity, price, netValue, filledAt, instrument.name"
+        message = "Řazení je povoleno pouze pro pole: id, ticker, side, quantity, price, walletImpact, filledAt, instrument.name"
 )
 public class TransactionFilter extends PageableFilter {
     @Size(min = 1, max = 20, message = "Ticker musí mít 1 až 20 znaků")

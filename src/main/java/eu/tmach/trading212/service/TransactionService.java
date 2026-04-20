@@ -21,10 +21,12 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -147,6 +149,7 @@ public class TransactionService {
 
         Transaction t = transactionMapper.toEntity(wrapper);
         t.setInstrument(instrument);
+        t.setTradeValue(t.getPrice().multiply(t.getQuantity()).divide(t.getFxRate(), RoundingMode.HALF_UP));
 
         if (t.getSide() == TradeSide.BUY) {
             t.setRemainingQuantity(t.getQuantity());
@@ -164,12 +167,17 @@ public class TransactionService {
                         sellTx.getTicker(), TradeSide.BUY, BigDecimal.ZERO);
 
         BigDecimal toMatch = sellTx.getQuantity();
+        BigDecimal tradingPnl = BigDecimal.ZERO;
+        BigDecimal actualPnl = BigDecimal.ZERO;
 
         for (Transaction buyTx : availableBuys) {
             if (toMatch.compareTo(BigDecimal.ZERO) <= 0) break;
 
             BigDecimal buyRemaining = buyTx.getRemainingQuantity();
             BigDecimal quantityToTake = buyRemaining.min(toMatch);
+
+            tradingPnl = tradingPnl.add(calculatePartialPnl(sellTx, buyTx, quantityToTake, Transaction::getWalletImpact));
+            actualPnl = actualPnl.add(calculatePartialPnl(sellTx, buyTx, quantityToTake, Transaction::getTradeValue));
 
             // Ponížíme zbývající množství u starého nákupu v DB
             buyTx.setRemainingQuantity(buyRemaining.subtract(quantityToTake));
@@ -179,8 +187,22 @@ public class TransactionService {
 
             toMatch = toMatch.subtract(quantityToTake);
 
-            log.info("FIFO: Páruji prodej {} s nákupem {} (zbývá k dopárování: {})",
-                    sellTx.getT212id(), buyTx.getT212id(), toMatch);
+            log.info("FIFO: Páruji prodej {} s nákupem {} (zbývá k dopárování: {}) | tpnl={} | apnl={}",
+                    sellTx.getT212id(), buyTx.getT212id(), toMatch, tradingPnl, actualPnl);
         }
+        sellTx.setActualPnl(tradingPnl);
+        sellTx.setTradingPnl(actualPnl);
+    }
+
+    private BigDecimal calculatePartialPnl(Transaction sell, Transaction buy, BigDecimal qty, Function<Transaction, BigDecimal> fieldExtractor) {
+        BigDecimal sellPart = fieldExtractor.apply(sell)
+                .multiply(qty)
+                .divide(sell.getQuantity(), 10, RoundingMode.HALF_UP);
+
+        BigDecimal buyPart = fieldExtractor.apply(buy)
+                .multiply(qty)
+                .divide(buy.getQuantity(), 10, RoundingMode.HALF_UP);
+
+        return sellPart.subtract(buyPart);
     }
 }

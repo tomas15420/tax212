@@ -51,14 +51,31 @@ public class Transaction {
     private BigDecimal fxRate;
 
     @Column(nullable = false, precision = 19, scale = 8)
-    private BigDecimal netValue;
+    private BigDecimal walletImpact;
+
+    @Column(nullable = false, precision = 19, scale = 8)
+    private BigDecimal tradeValue;
 
     @Column(nullable = false, precision = 19, scale = 8)
     private BigDecimal remainingQuantity;
 
+    @Column(precision = 19, scale = 8)
+    private BigDecimal tradingPnl;
+
+    @Column(precision = 19, scale = 8)
+    private BigDecimal actualPnl;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "instrument_id", nullable = false)
     private Instrument instrument;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private OrderStatus orderStatus;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private FillType fillType;
 
     @ManyToMany
     @JoinTable(

@@ -1,5 +1,7 @@
 package eu.tmach.trading212.dto;
 
+import eu.tmach.trading212.model.FillType;
+import eu.tmach.trading212.model.OrderStatus;
 import eu.tmach.trading212.model.TradeSide;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -40,11 +42,26 @@ public record TransactionDto(
 
         @Schema(description = "Celková čistá hodnota transakce v měně účtu",
                 example = "6625.40")
-        BigDecimal netValue,
+        BigDecimal walletImpact,
+
+        @Schema(description = "Reálná hodnota transakce")
+        BigDecimal tradeValue,
 
         @Schema(description = "Datum a čas vyplnění (provedení) objednávky na burze",
                 example = "2026-04-19T16:50:19")
         LocalDateTime filledAt,
+
+        @Schema(description = "Realizovaný zisk nebo ztráta")
+        BigDecimal tradingPnl,
+
+        @Schema(description = "Skutečný realizovaný zisk nebo ztráta (očištěno od FX poplatku)")
+        BigDecimal actualPnl,
+
+        @Schema(description = "Status objednávky (např. FILLED)")
+        OrderStatus orderStatus,
+
+        @Schema(description = "Typ provedení (např. TRADE, STOCK_SPLIT, FOP)")
+        FillType fillType,
 
         @Schema(description = "Detailní informace o souvisejícím instrumentu")
         InstrumentDto instrument

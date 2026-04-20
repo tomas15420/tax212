@@ -42,7 +42,7 @@ public class TaxService {
         BigDecimal taxableSum = BigDecimal.ZERO;
         for (Transaction sell : sales) {
             // Vezmeme čistou hodnotu celé transakce
-            BigDecimal totalNetValue = sell.getNetValue();
+            BigDecimal totalWalletImpact = sell.getWalletImpact();
             BigDecimal totalQty = sell.getQuantity();
 
             for (Transaction buy : sell.getMatchedBuys()) {
@@ -52,7 +52,7 @@ public class TaxService {
                         .divide(totalQty, 10, RoundingMode.HALF_UP);
 
                 // Poměrná část reálné hodnoty (netValue)
-                BigDecimal realValuePart = totalNetValue.multiply(portion);
+                BigDecimal realValuePart = totalWalletImpact.multiply(portion);
 
                 // Časový test 3 roky
                 boolean isTaxFree = buy.getFilledAt().plusYears(timeTestYears)
