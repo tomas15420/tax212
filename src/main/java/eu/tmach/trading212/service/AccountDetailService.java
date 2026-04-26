@@ -31,14 +31,6 @@ public class AccountDetailService {
 
 
         save(accountSummaryMapper.toDto(t212AccountSummary));
-//        save(AccountSummaryDto.builder()
-//                .currency(t212AccountSummary.currency())
-//                .totalValue(t212AccountSummary.totalValue())
-//                .currentValue(t212AccountSummary.investments().currentValue())
-//                .totalCost(t212AccountSummary.investments().totalCost())
-//                .realizedProfitLoss(t212AccountSummary.investments().realizedProfitLoss())
-//                .unrealizedProfitLoss(t212AccountSummary.investments().unrealizedProfitLoss())
-//                .build());
     }
 
     public void save(AccountSummaryDto dto) {

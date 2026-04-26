@@ -7,8 +7,11 @@ import lombok.Builder;
 @Builder
 public record InstrumentDto(
 
-        @Schema(description = "Burzovní symbol (ticker)", example = "VUAA")
+        @Schema(description = "Burzovní symbol (ticker)", example = "VUAA_EU_EQ")
         String ticker,
+
+        @Schema(description = "Čistý tržní symbol", example = "VUAA")
+        String marketTicker,
 
         @Schema(description = "Celý název instrumentu", example = "Vanguard S&P 500 UCITS ETF")
         String name,
