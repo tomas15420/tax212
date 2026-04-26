@@ -1,19 +1,15 @@
 package eu.tmach.trading212.config;
 
 import eu.tmach.trading212.exception.ApiErrorResponse;
-import eu.tmach.trading212.exception.ValidationErrorResponse;
 import io.swagger.v3.core.converter.AnnotatedType;
 import io.swagger.v3.core.converter.ModelConverters;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
-import io.swagger.v3.oas.models.PathItem;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.media.Content;
 import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.responses.ApiResponse;
-import io.swagger.v3.oas.models.responses.ApiResponses;
-import io.swagger.v3.oas.models.tags.Tag;
 import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,9 +22,9 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Investiční API")
+                        .title("Fifolio")
                         .version("1.0")
-                        .description("API pro správu a synchronizaci investičního portfolia"))
+                        .description("API pro správu a synchronizaci investičního portfolia z Trading212"))
                 .components(new Components());
         // Necháme prázdné, schémata tam dotlačíme v Customizeru, aby byla jistota existence
     }

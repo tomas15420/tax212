@@ -66,7 +66,9 @@ public class TransactionService {
 
                     BigDecimal taxFree = BigDecimal.ZERO;
                     BigDecimal taxable = BigDecimal.ZERO;
+
                     BigDecimal totalBuyCost = BigDecimal.ZERO;
+                    BigDecimal totalBuyQty = BigDecimal.ZERO;
                     BigDecimal totalRemainingQty = BigDecimal.ZERO;
 
                     BigDecimal totalSellValue = BigDecimal.ZERO;
@@ -74,6 +76,8 @@ public class TransactionService {
 
                     for (Transaction t : transactions) {
                         if (t.getSide() == TradeSide.BUY) {
+                            totalBuyQty = totalBuyQty.add(t.getQuantity());
+
                             BigDecimal remaining = t.getRemainingQuantity();
                             if (remaining.compareTo(BigDecimal.ZERO) > 0) {
                                 boolean isTaxFree = t.getFilledAt().plusYears(timeTestYears).isBefore(toDate);
@@ -102,15 +106,18 @@ public class TransactionService {
                             : BigDecimal.ZERO;
 
                     BigDecimal gainPercent = BigDecimal.ZERO;
+                    BigDecimal gainAmount = BigDecimal.ZERO;
                     if (avgBuy.compareTo(BigDecimal.ZERO) > 0 && avgSell.compareTo(BigDecimal.ZERO) > 0) {
                         gainPercent = avgSell.subtract(avgBuy)
                                 .divide(avgBuy, 10, RoundingMode.HALF_UP)
                                 .multiply(BigDecimal.valueOf(100));
 
+                        gainAmount = avgSell.subtract(avgBuy)
+                                .multiply(totalSoldQty)
+                                .setScale(4, RoundingMode.HALF_UP);
                     }
 
                     BigDecimal holdingsCost = totalRemainingQty.multiply(avgBuy);
-
 
                     Instrument instrument = transactions.getFirst().getInstrument();
 
@@ -121,10 +128,15 @@ public class TransactionService {
                             .availableQuantity(totalRemainingQty)
                             .taxFreeQuantity(taxFree)
                             .inTaxQuantity(taxable)
-                            .averageBuyPrice(avgBuy)
-                            .averageSellPrice(avgSell)
-                            .historicalGainPercent(gainPercent)
-                            .totalHoldingsCost(holdingsCost)
+                            .totalBuysQuantity(totalBuyQty)
+                            .totalSellsQuantity(totalSoldQty)
+                            .averageBuyPrice(avgBuy.setScale(2, RoundingMode.HALF_UP))
+                            .averageSellPrice(avgSell.setScale(2, RoundingMode.HALF_UP))
+                            .totalBuyCost(totalBuyCost.setScale(2, RoundingMode.HALF_UP))
+                            .totalSellValue(totalSellValue.setScale(2, RoundingMode.HALF_UP))
+                            .realisedGainLoss(gainAmount.setScale(2, RoundingMode.HALF_UP))
+                            .realizedGainLossPercent(gainPercent.setScale(4, RoundingMode.HALF_UP))
+                            .totalHoldingsCost(holdingsCost.setScale(2, RoundingMode.HALF_UP))
                             .build();
                 })
                 .filter(dto -> dto.availableQuantity().compareTo(BigDecimal.ZERO) > 0)
