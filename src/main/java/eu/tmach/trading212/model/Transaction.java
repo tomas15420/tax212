@@ -77,16 +77,11 @@ public class Transaction {
     @Column(nullable = false, length = 50)
     private FillType fillType;
 
-    @ManyToMany
-    @JoinTable(
-            name = "trade_matches",
-            joinColumns = @JoinColumn(name = "sell_id"),
-            inverseJoinColumns = @JoinColumn(name = "buy_id")
-    )
+    @OneToMany(mappedBy = "sell", cascade = CascadeType.ALL)
     @Builder.Default
-    private List<Transaction> matchedBuys = new ArrayList<>();
+    private List<TradeMatch> matchedBuys = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "matchedBuys")
+    @OneToMany(mappedBy = "buy", cascade = CascadeType.ALL)
     @Builder.Default
-    private List<Transaction> matchedSells = new ArrayList<>();
+    private List<TradeMatch> matchedSells = new ArrayList<>();
 }

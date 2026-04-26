@@ -28,4 +28,7 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long>,
     @EntityGraph(attributePaths = {"instrument"})
     @NonNull
     List<Transaction> findAll();
+    
+    @EntityGraph(attributePaths = {"instrument"})
+    List<Transaction> findAllByFilledAtBefore(LocalDateTime filledAtBefore);
 }

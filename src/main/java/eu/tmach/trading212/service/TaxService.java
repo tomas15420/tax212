@@ -4,6 +4,7 @@ import eu.tmach.trading212.dto.TaxReportDto;
 import eu.tmach.trading212.mapper.DividendMapper;
 import eu.tmach.trading212.mapper.TransactionMapper;
 import eu.tmach.trading212.model.Dividend;
+import eu.tmach.trading212.model.TradeMatch;
 import eu.tmach.trading212.model.TradeSide;
 import eu.tmach.trading212.model.Transaction;
 import eu.tmach.trading212.repository.DividendRepository;
@@ -43,13 +44,12 @@ public class TaxService {
         for (Transaction sell : sales) {
             // Vezmeme čistou hodnotu celé transakce
             BigDecimal totalWalletImpact = sell.getWalletImpact();
-            BigDecimal totalQty = sell.getQuantity();
 
-            for (Transaction buy : sell.getMatchedBuys()) {
-                // Zjistíme, jak velkou část z prodeje tvoří tento konkrétní match
-                // (např. 5 ks z 10 ks = 0.5)
-                BigDecimal portion = buy.getQuantity()
-                        .divide(totalQty, 10, RoundingMode.HALF_UP);
+            for (TradeMatch match : sell.getMatchedBuys()) {
+                Transaction buy = match.getBuy();
+
+                BigDecimal portion = match.getMatchedQuantity()
+                        .divide(sell.getQuantity(), 10, RoundingMode.HALF_UP);
 
                 // Poměrná část reálné hodnoty (netValue)
                 BigDecimal realValuePart = totalWalletImpact.multiply(portion);

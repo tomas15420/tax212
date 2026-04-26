@@ -25,6 +25,18 @@ public record PortfolioStatusDto(
         BigDecimal taxFreeQuantity,
 
         @Schema(description = "Množství, které je stále v daňovém testu (držené kratší dobu)", example = "6.35")
-        BigDecimal inTaxQuantity
+        BigDecimal inTaxQuantity,
+
+        @Schema(description = "Průměrná nákupní cena držených akcií", example = "150.25")
+        BigDecimal averageBuyPrice,
+
+        @Schema(description = "Průměrná prodejní cena", example = "165.50")
+        BigDecimal averageSellPrice,
+
+        @Schema(description = "Rozdíl mezi průměrným prodejem a nákupem (v %)", example = "0.52")
+        BigDecimal historicalGainPercent,
+
+        @Schema(description = "Celková nákupní hodnota držených pozic v CZK", example = "13962.70")
+        BigDecimal totalHoldingsCost
 ) {
 }

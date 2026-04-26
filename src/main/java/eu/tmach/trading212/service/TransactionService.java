@@ -1,14 +1,15 @@
 package eu.tmach.trading212.service;
 
 import eu.tmach.trading212.client.T212Client;
-import eu.tmach.trading212.dto.InstrumentDto;
 import eu.tmach.trading212.dto.PagedResponse;
 import eu.tmach.trading212.dto.PortfolioStatusDto;
 import eu.tmach.trading212.dto.TransactionDto;
 import eu.tmach.trading212.dto.filter.TransactionFilter;
 import eu.tmach.trading212.dto.trading212.T212OrderWrapper;
+import eu.tmach.trading212.mapper.InstrumentMapper;
 import eu.tmach.trading212.mapper.TransactionMapper;
 import eu.tmach.trading212.model.Instrument;
+import eu.tmach.trading212.model.TradeMatch;
 import eu.tmach.trading212.model.TradeSide;
 import eu.tmach.trading212.model.Transaction;
 import eu.tmach.trading212.repository.TransactionRepository;
@@ -37,6 +38,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final InstrumentService instrumentService;
     private final TransactionMapper transactionMapper;
+    private final InstrumentMapper instrumentMapper;
 
     @Value("${tax.limits.time-test-years:3}")
     private int timeTestYears;
@@ -52,7 +54,7 @@ public class TransactionService {
     }
 
     public List<PortfolioStatusDto> getAvailableAssets(LocalDateTime toDate) {
-        List<Transaction> buys = transactionRepository.findAllBySideAndFilledAtBefore(TradeSide.BUY, toDate);
+        List<Transaction> buys = transactionRepository.findAllByFilledAtBefore(toDate);
 
         Map<String, List<Transaction>> groupedByTicker = buys.stream()
                 .collect(Collectors.groupingBy(Transaction::getTicker));
@@ -64,37 +66,65 @@ public class TransactionService {
 
                     BigDecimal taxFree = BigDecimal.ZERO;
                     BigDecimal taxable = BigDecimal.ZERO;
+                    BigDecimal totalBuyCost = BigDecimal.ZERO;
+                    BigDecimal totalRemainingQty = BigDecimal.ZERO;
+
+                    BigDecimal totalSellValue = BigDecimal.ZERO;
+                    BigDecimal totalSoldQty = BigDecimal.ZERO;
 
                     for (Transaction t : transactions) {
-                        boolean isTaxFree = t.getFilledAt().plusYears(timeTestYears).isBefore(toDate);
-                        if (isTaxFree) {
-                            taxFree = taxFree.add(t.getRemainingQuantity());
+                        if (t.getSide() == TradeSide.BUY) {
+                            BigDecimal remaining = t.getRemainingQuantity();
+                            if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+                                boolean isTaxFree = t.getFilledAt().plusYears(timeTestYears).isBefore(toDate);
+                                if (isTaxFree) {
+                                    taxFree = taxFree.add(t.getRemainingQuantity());
+                                } else {
+                                    taxable = taxable.add(t.getRemainingQuantity());
+                                }
+
+                                totalBuyCost = totalBuyCost.add(remaining.multiply(t.getPrice().divide(t.getFxRate(), 10, RoundingMode.HALF_UP)));
+                                totalRemainingQty = totalRemainingQty.add(remaining);
+                            }
                         } else {
-                            taxable = taxable.add(t.getRemainingQuantity());
+                            totalSellValue = totalSellValue.add(t.getQuantity().multiply(t.getPrice()).divide(t.getFxRate(), 10, RoundingMode.HALF_UP));
+                            totalSoldQty = totalSoldQty.add(t.getQuantity());
                         }
                     }
-                    BigDecimal totalRemaining = taxFree.add(taxable);
 
-//                    BigDecimal totalRemaining = transactions.stream()
-//                            .map(Transaction::getRemainingQuantity)
-//                            .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+                    BigDecimal avgBuy = totalRemainingQty.compareTo(BigDecimal.ZERO) > 0
+                            ? totalBuyCost.divide(totalRemainingQty, 10, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
+
+                    BigDecimal avgSell = totalSoldQty.compareTo(BigDecimal.ZERO) > 0
+                            ? totalSellValue.divide(totalSoldQty, 10, RoundingMode.HALF_UP)
+                            : BigDecimal.ZERO;
+
+                    BigDecimal gainPercent = BigDecimal.ZERO;
+                    if (avgBuy.compareTo(BigDecimal.ZERO) > 0 && avgSell.compareTo(BigDecimal.ZERO) > 0) {
+                        gainPercent = avgSell.subtract(avgBuy)
+                                .divide(avgBuy, 10, RoundingMode.HALF_UP)
+                                .multiply(BigDecimal.valueOf(100));
+
+                    }
+
+                    BigDecimal holdingsCost = totalRemainingQty.multiply(avgBuy);
+
 
                     Instrument instrument = transactions.getFirst().getInstrument();
 
                     return PortfolioStatusDto.builder()
                             .timeTestYears(timeTestYears)
                             .ticker(ticker)
-                            .instrument(instrument != null ?
-                                    InstrumentDto.builder()
-                                    .name(instrument.getName())
-                                    .isin(instrument.getIsin())
-                                    .ticker(instrument.getTicker())
-                                    .currency(instrument.getCurrency())
-                                    .build()
-                                    : null)
-                            .availableQuantity(totalRemaining)
+                            .instrument(instrumentMapper.toDto(instrument))
+                            .availableQuantity(totalRemainingQty)
                             .taxFreeQuantity(taxFree)
                             .inTaxQuantity(taxable)
+                            .averageBuyPrice(avgBuy)
+                            .averageSellPrice(avgSell)
+                            .historicalGainPercent(gainPercent)
+                            .totalHoldingsCost(holdingsCost)
                             .build();
                 })
                 .filter(dto -> dto.availableQuantity().compareTo(BigDecimal.ZERO) > 0)
@@ -134,19 +164,6 @@ public class TransactionService {
     private void processAndSave(T212OrderWrapper wrapper) {
         Instrument instrument = instrumentService.getOrCreateInstrument(wrapper.order().instrument());
 
-//        Transaction t = Transaction.builder()
-//                .t212id(wrapper.fill().id())
-//                .instrument(instrument)
-//                .ticker(wrapper.order().ticker())
-//                .side(wrapper.order().side())
-//                .quantity(wrapper.fill().quantity().abs())
-//                .price(wrapper.fill().price())
-//                .currency(wrapper.order().currency())
-//                .fxRate(wrapper.fill().walletImpact().fxRate())
-//                .netValue(wrapper.fill().walletImpact().netValue())
-//                .filledAt(wrapper.fill().filledAt())
-//                .build();
-
         Transaction t = transactionMapper.toEntity(wrapper);
         t.setInstrument(instrument);
         t.setTradeValue(t.getPrice().multiply(t.getQuantity()).divide(t.getFxRate(), RoundingMode.HALF_UP));
@@ -183,7 +200,13 @@ public class TransactionService {
             buyTx.setRemainingQuantity(buyRemaining.subtract(quantityToTake));
             transactionRepository.save(buyTx);
 
-            sellTx.getMatchedBuys().add(buyTx);
+            TradeMatch match = TradeMatch.builder()
+                    .sell(sellTx)
+                    .buy(buyTx)
+                    .matchedQuantity(quantityToTake)
+                    .build();
+
+            sellTx.getMatchedBuys().add(match);
 
             toMatch = toMatch.subtract(quantityToTake);
 
