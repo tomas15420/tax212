@@ -17,7 +17,7 @@ const RealizedProfitCard = ({ actualValue, tradingValue, currency }: RealizedPro
     const isTradingPositive = tradingNum >= 0;
 
     return (
-        <Card className="sm:col-span-2">
+        <Card className={cn("bg-muted/50 border-none shadow-none", "sm:col-span-2")}>
             <CardContent className="p-4 md:p-6">
                 <div className="flex flex-col gap-3 md:gap-4">
 

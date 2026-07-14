@@ -3,7 +3,7 @@ import KpiCard from "./KpiCard";
 import RealizedProfitCard from "./RealizedProfitCard";
 import { useGetSummary } from "@/api/tax212";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/utils";
 import { ErrorCard } from "@/components/ErrorCard";
 
@@ -60,49 +60,49 @@ const Overview = () => {
   const isUnrealizedPositive = unrealizedVal >= 0;
 
   return (
-    <section className="space-y-4 md:space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-bold tracking-tight text-foreground md:text-2xl">
+    <Card className="bg-card border-border/50">
+      <CardHeader>
+        <CardTitle className="text-lg font-bold tracking-tight text-foreground md:text-2xl">
           Celkový přehled
-        </h2>
-      </div>
-
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
-        <KpiCard
-          title="Celková hodnota"
-          value={formatCurrency(summary?.totalValue, currency)}
-          icon={Wallet}
-        />
-        <KpiCard
-          title="Hodnota investic"
-          value={formatCurrency(summary?.currentValue, currency)}
-          icon={Layers}
-        />
-        <KpiCard
-          title="Náklady"
-          value={formatCurrency(summary?.totalCost, currency)}
-          icon={Coins}
-        />
-        <KpiCard
-          title="Nerealizovaný zisk"
-          value={formatCurrency(summary?.unrealizedProfitLoss, currency, true)}
-          icon={isUnrealizedPositive ? ArrowUpRight : ArrowDownRight}
-          className={isUnrealizedPositive
-            ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-            : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
-          }
-          valueClassName={isUnrealizedPositive
-            ? "text-emerald-600 dark:text-emerald-400"
-            : "text-rose-600 dark:text-rose-400"
-          }
-        />
-        <RealizedProfitCard
-          actualValue={summary?.actualRealizedProfitLoss}
-          tradingValue={summary?.realizedProfitLoss}
-          currency={currency}
-        />
-      </div>
-    </section>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4 md:gap-4">
+          <KpiCard
+            title="Celková hodnota"
+            value={formatCurrency(summary?.totalValue, currency)}
+            icon={Wallet}
+          />
+          <KpiCard
+            title="Hodnota investic"
+            value={formatCurrency(summary?.currentValue, currency)}
+            icon={Layers}
+          />
+          <KpiCard
+            title="Náklady"
+            value={formatCurrency(summary?.totalCost, currency)}
+            icon={Coins}
+          />
+          <KpiCard
+            title="Nerealizovaný zisk"
+            value={formatCurrency(summary?.unrealizedProfitLoss, currency, true)}
+            icon={isUnrealizedPositive ? ArrowUpRight : ArrowDownRight}
+            className={isUnrealizedPositive
+              ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+              : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+            }
+            valueClassName={isUnrealizedPositive
+              ? "text-emerald-600 dark:text-emerald-400"
+              : "text-rose-600 dark:text-rose-400"
+            }
+          />
+          <RealizedProfitCard
+            actualValue={summary?.actualRealizedProfitLoss}
+            tradingValue={summary?.realizedProfitLoss}
+            currency={currency}
+          />
+        </div></CardContent>
+    </Card>
   );
 };
 

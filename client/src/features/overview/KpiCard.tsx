@@ -19,7 +19,7 @@ const KpiCard = ({
     valueClassName,
 }: KpiCardProps) => {
     return (
-        <Card>
+        <Card className={cn("bg-muted/50 border-none shadow-none")}>
             <CardContent className="p-4 md:p-6">
                 <div className="flex items-center justify-between gap-3 md:flex-col md:items-start md:justify-between md:gap-4">
 
