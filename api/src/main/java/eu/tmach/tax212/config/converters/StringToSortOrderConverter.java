@@ -1,4 +1,4 @@
-package eu.tmach.tax212.config;
+package eu.tmach.tax212.config.converters;
 
 import eu.tmach.tax212.dto.filter.SortOrder;
 import org.jspecify.annotations.NonNull;

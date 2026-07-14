@@ -5,11 +5,14 @@ import eu.tmach.tax212.dto.trading212.T212AccountSummary;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import java.math.BigDecimal;
+
 @Mapper(componentModel = "spring")
 public interface AccountSummaryMapper {
-    @Mapping(source = "investments.currentValue", target = "currentValue")
-    @Mapping(source = "investments.totalCost", target = "totalCost")
-    @Mapping(source = "investments.realizedProfitLoss", target = "realizedProfitLoss")
-    @Mapping(source = "investments.unrealizedProfitLoss", target = "unrealizedProfitLoss")
-    AccountSummaryDto toDto(T212AccountSummary s);
+    @Mapping(source = "s.investments.currentValue", target = "currentValue")
+    @Mapping(source = "s.investments.totalCost", target = "totalCost")
+    @Mapping(source = "s.investments.realizedProfitLoss", target = "realizedProfitLoss")
+    @Mapping(source = "s.investments.unrealizedProfitLoss", target = "unrealizedProfitLoss")
+    @Mapping(source = "actualRealizedProfitLoss", target = "actualRealizedProfitLoss")
+    AccountSummaryDto toDto(T212AccountSummary s, BigDecimal actualRealizedProfitLoss);
 }

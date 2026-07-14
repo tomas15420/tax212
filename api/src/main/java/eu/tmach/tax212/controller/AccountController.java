@@ -8,7 +8,6 @@ import eu.tmach.tax212.service.TaxService;
 import eu.tmach.tax212.service.TransactionService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -20,12 +19,11 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/accounts")
-@Tag(name = "Účty a Portfolio", description = "Správa investičního účtu, přehledy aktiv a daňové podklady")
+@Tag(name = "Účet a portfolio", description = "Správa investičního účtu, přehledy aktiv a daňové podklady")
 public class AccountController {
     private final AccountDetailService accountDetailService;
     private final TransactionService transactionService;
@@ -56,16 +54,20 @@ public class AccountController {
             @ApiResponse(
                     responseCode = "200",
                     description = "Úspěšně načtený stav portfolia",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = PortfolioStatusDto.class)))
+                    content = @Content(schema = @Schema(implementation = PortfolioStatusDto.class))
             ),
     })
     @GetMapping("/portfolio")
-    public ResponseEntity<List<PortfolioStatusDto>> getPortfolio(
+    public ResponseEntity<PortfolioStatusDto> getPortfolio(
             @Parameter(description = "Datum a čas, ke kterému se má stav portfolia vypočítat. Formát ISO",
                     example = "2024-12-31T23:59:59")
             @RequestParam(required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date) {
-        return ResponseEntity.ok(transactionService.getAvailableAssets(date == null ? LocalDateTime.now() : date));
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+            LocalDateTime date,
+            @Parameter(description = "Zahrnout prodaná aktiva")
+            @RequestParam(required = false)
+            boolean includeSold) {
+        return ResponseEntity.ok(transactionService.getAvailableAssets(date == null ? LocalDateTime.now() : date, includeSold));
     }
 
     @Operation(

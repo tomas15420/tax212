@@ -3,6 +3,7 @@ package eu.tmach.tax212.service;
 import eu.tmach.tax212.client.T212Client;
 import eu.tmach.tax212.dto.PagedResponse;
 import eu.tmach.tax212.dto.PortfolioStatusDto;
+import eu.tmach.tax212.dto.PortfolioStatusItemDto;
 import eu.tmach.tax212.dto.TransactionDto;
 import eu.tmach.tax212.dto.filter.TransactionFilter;
 import eu.tmach.tax212.dto.trading212.T212OrderWrapper;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -53,94 +55,132 @@ public class TransactionService {
         return transactionPage.map(transactionMapper::toDto);
     }
 
-    public List<PortfolioStatusDto> getAvailableAssets(LocalDateTime toDate) {
+    public PortfolioStatusDto getAvailableAssets(LocalDateTime toDate, boolean includeSold) {
         List<Transaction> buys = transactionRepository.findAllByFilledAtBefore(toDate);
 
         Map<String, List<Transaction>> groupedByTicker = buys.stream()
                 .collect(Collectors.groupingBy(Transaction::getTicker));
 
-        return groupedByTicker.entrySet().stream()
+        List<PortfolioStatusItemDto> items = groupedByTicker.entrySet().stream()
                 .map(entry -> {
                     String ticker = entry.getKey();
-                    List<Transaction> transactions = entry.getValue();
+                    List<Transaction> tickerTransactions = entry.getValue();
 
-                    BigDecimal taxFree = BigDecimal.ZERO;
-                    BigDecimal taxable = BigDecimal.ZERO;
+                    BigDecimal taxFreeQty = BigDecimal.ZERO;
+                    BigDecimal taxableQty = BigDecimal.ZERO;
 
-                    BigDecimal totalBuyCost = BigDecimal.ZERO;
+                    BigDecimal totalBuyCostForRemaining = BigDecimal.ZERO;
                     BigDecimal totalBuyQty = BigDecimal.ZERO;
                     BigDecimal totalRemainingQty = BigDecimal.ZERO;
 
                     BigDecimal totalSellValue = BigDecimal.ZERO;
                     BigDecimal totalSoldQty = BigDecimal.ZERO;
+                    BigDecimal totalRealizedPnL = BigDecimal.ZERO;
+                    BigDecimal totalActualRealizedPnL = BigDecimal.ZERO;
 
-                    for (Transaction t : transactions) {
+                    for (Transaction t : tickerTransactions) {
                         if (t.getSide() == TradeSide.BUY) {
                             totalBuyQty = totalBuyQty.add(t.getQuantity());
-
                             BigDecimal remaining = t.getRemainingQuantity();
-                            if (remaining.compareTo(BigDecimal.ZERO) > 0) {
+
+                            if (remaining != null && remaining.compareTo(BigDecimal.ZERO) > 0) {
                                 boolean isTaxFree = t.getFilledAt().plusYears(timeTestYears).isBefore(toDate);
                                 if (isTaxFree) {
-                                    taxFree = taxFree.add(t.getRemainingQuantity());
+                                    taxFreeQty = taxFreeQty.add(remaining);
                                 } else {
-                                    taxable = taxable.add(t.getRemainingQuantity());
+                                    taxableQty = taxableQty.add(remaining);
                                 }
 
-                                totalBuyCost = totalBuyCost.add(remaining.multiply(t.getPrice().divide(t.getFxRate(), 10, RoundingMode.HALF_UP)));
+                                BigDecimal remainingCostValue = remaining.multiply(t.getPrice())
+                                        .divide(t.getFxRate(), 10, RoundingMode.HALF_UP);
+
+                                totalBuyCostForRemaining = totalBuyCostForRemaining.add(remainingCostValue);
                                 totalRemainingQty = totalRemainingQty.add(remaining);
                             }
-                        } else {
-                            totalSellValue = totalSellValue.add(t.getQuantity().multiply(t.getPrice()).divide(t.getFxRate(), 10, RoundingMode.HALF_UP));
+                        } else if (t.getSide() == TradeSide.SELL) {
                             totalSoldQty = totalSoldQty.add(t.getQuantity());
+
+                            BigDecimal sellValue = t.getQuantity().multiply(t.getPrice())
+                                    .divide(t.getFxRate(), 10, RoundingMode.HALF_UP);
+                            totalSellValue = totalSellValue.add(sellValue);
+
+                            if (t.getActualPnl() != null) {
+                                totalActualRealizedPnL = totalActualRealizedPnL.add(t.getActualPnl());
+                            }
+
+                            if (t.getTradingPnl() != null) {
+                                totalRealizedPnL = totalRealizedPnL.add(t.getTradingPnl());
+                            }
                         }
                     }
 
-
                     BigDecimal avgBuy = totalRemainingQty.compareTo(BigDecimal.ZERO) > 0
-                            ? totalBuyCost.divide(totalRemainingQty, 10, RoundingMode.HALF_UP)
+                            ? totalBuyCostForRemaining.divide(totalRemainingQty, 10, RoundingMode.HALF_UP)
                             : BigDecimal.ZERO;
 
                     BigDecimal avgSell = totalSoldQty.compareTo(BigDecimal.ZERO) > 0
                             ? totalSellValue.divide(totalSoldQty, 10, RoundingMode.HALF_UP)
                             : BigDecimal.ZERO;
 
-                    BigDecimal gainPercent = BigDecimal.ZERO;
-                    BigDecimal gainAmount = BigDecimal.ZERO;
-                    if (avgBuy.compareTo(BigDecimal.ZERO) > 0 && avgSell.compareTo(BigDecimal.ZERO) > 0) {
-                        gainPercent = avgSell.subtract(avgBuy)
-                                .divide(avgBuy, 10, RoundingMode.HALF_UP)
-                                .multiply(BigDecimal.valueOf(100));
 
-                        gainAmount = avgSell.subtract(avgBuy)
-                                .multiply(totalSoldQty)
-                                .setScale(4, RoundingMode.HALF_UP);
+                    BigDecimal realizedGainPercent = BigDecimal.ZERO;
+                    BigDecimal actualGainPercent = BigDecimal.ZERO;
+                    if (avgBuy.compareTo(BigDecimal.ZERO) > 0 && totalSoldQty.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal totalBuyCostForSold = totalSellValue.subtract(totalActualRealizedPnL);
+                        if (totalBuyCostForSold.compareTo(BigDecimal.ZERO) > 0) {
+                            actualGainPercent = totalActualRealizedPnL
+                                    .divide(totalBuyCostForSold, 10, RoundingMode.HALF_UP)
+                                    .multiply(BigDecimal.valueOf(100));
+                        }
+
+                        BigDecimal totalTradingBuyCostForSold = totalSellValue.subtract(totalRealizedPnL);
+                        if (totalTradingBuyCostForSold.compareTo(BigDecimal.ZERO) > 0) {
+                            realizedGainPercent = totalRealizedPnL
+                                    .divide(totalTradingBuyCostForSold, 10, RoundingMode.HALF_UP)
+                                    .multiply(BigDecimal.valueOf(100));
+                        }
                     }
 
-                    BigDecimal holdingsCost = totalRemainingQty.multiply(avgBuy);
+                    Instrument instrument = tickerTransactions.stream()
+                            .map(Transaction::getInstrument)
+                            .filter(Objects::nonNull)
+                            .findFirst()
+                            .orElse(null);
 
-                    Instrument instrument = transactions.getFirst().getInstrument();
-
-                    return PortfolioStatusDto.builder()
+                    return PortfolioStatusItemDto.builder()
                             .timeTestYears(timeTestYears)
                             .ticker(ticker)
                             .instrument(instrumentMapper.toDto(instrument))
                             .availableQuantity(totalRemainingQty)
-                            .taxFreeQuantity(taxFree)
-                            .inTaxQuantity(taxable)
+                            .taxFreeQuantity(taxFreeQty)
+                            .inTaxQuantity(taxableQty)
                             .totalBuysQuantity(totalBuyQty)
                             .totalSellsQuantity(totalSoldQty)
                             .averageBuyPrice(avgBuy.setScale(2, RoundingMode.HALF_UP))
                             .averageSellPrice(avgSell.setScale(2, RoundingMode.HALF_UP))
-                            .totalBuyCost(totalBuyCost.setScale(2, RoundingMode.HALF_UP))
+                            .totalBuyCost(totalBuyCostForRemaining.setScale(2, RoundingMode.HALF_UP))
                             .totalSellValue(totalSellValue.setScale(2, RoundingMode.HALF_UP))
-                            .realisedGainLoss(gainAmount.setScale(2, RoundingMode.HALF_UP))
-                            .realizedGainLossPercent(gainPercent.setScale(4, RoundingMode.HALF_UP))
-                            .totalHoldingsCost(holdingsCost.setScale(2, RoundingMode.HALF_UP))
+                            .realisedGainLoss(totalRealizedPnL.setScale(2, RoundingMode.HALF_UP))
+                            .realizedGainLossPercent(realizedGainPercent.setScale(2, RoundingMode.HALF_UP))
+                            .actualRealisedGainLoss(totalActualRealizedPnL.setScale(2, RoundingMode.HALF_UP))
+                            .actualRealizedGainLossPercent(actualGainPercent.setScale(2, RoundingMode.HALF_UP))
+                            .totalHoldingsCost(totalBuyCostForRemaining.setScale(2, RoundingMode.HALF_UP)) // holdings cost je de facto totalBuyCost zbývajících pozic
                             .build();
                 })
-                .filter(dto -> dto.availableQuantity().compareTo(BigDecimal.ZERO) > 0)
+                .filter(item -> includeSold || item.availableQuantity().compareTo(BigDecimal.ZERO) > 0)
                 .toList();
+
+        return PortfolioStatusDto.builder()
+                .timeTestYears(timeTestYears)
+                .items(items)
+                .build();
+    }
+
+    public BigDecimal getActualRealizedProfitLoss() {
+        return transactionRepository.findAll().stream()
+                .filter(t -> t.getSide() == TradeSide.SELL)
+                .map(Transaction::getActualPnl)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
     }
 
     @Transactional

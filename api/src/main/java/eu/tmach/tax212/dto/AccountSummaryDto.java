@@ -9,22 +9,25 @@ import java.math.BigDecimal;
 @Builder
 public record AccountSummaryDto(
 
-        @Schema(description = "Kód měny, ve které je souhrn vypočten", example = "CZK")
+        @Schema(description = "Kód měny účtu", example = "CZK")
         String currency,
 
-        @Schema(description = "Celková hodnota majetku (aktuální cena aktiv + hotovost)", example = "1500250.00")
+        @Schema(description = "Celková hodnota majetku (aktuální cena aktiv + hotovost)")
         BigDecimal totalValue,
 
-        @Schema(description = "Aktuální tržní hodnota držených pozic", example = "1200000.50")
+        @Schema(description = "Aktuální tržní hodnota držených pozic")
         BigDecimal currentValue,
 
-        @Schema(description = "Celkové historické náklady na pořízení (nákupní ceny)", example = "1000000.00")
+        @Schema(description = "Celkové historické náklady na pořízení (nákupní ceny)")
         BigDecimal totalCost,
 
-        @Schema(description = "Realizovaný zisk nebo ztráta (z uzavřených obchodů)", example = "50250.00")
+        @Schema(description = "Skutečný realizovaný zisk nebo ztráta (z uzavřených obchodů)")
+        BigDecimal actualRealizedProfitLoss,
+
+        @Schema(description = "Realizovaný zisk nebo ztráta (z uzavřených obchodů)")
         BigDecimal realizedProfitLoss,
 
-        @Schema(description = "Nerealizovaný (papírový) zisk nebo ztráta (rozdíl tržní ceny a nákladů)", example = "200000.50")
+        @Schema(description = "Nerealizovaný (papírový) zisk nebo ztráta (rozdíl tržní ceny a nákladů)")
         BigDecimal unrealizedProfitLoss
 ) {
 }

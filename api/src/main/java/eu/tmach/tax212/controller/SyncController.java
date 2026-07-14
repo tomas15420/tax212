@@ -27,16 +27,15 @@ public class SyncController {
 
     @Operation(
             summary = "Kompletní synchronizace",
-            description = "Spustí proces úplné aktualizace dat. Zahrnuje informace o účtu, portfoliu i celou historii transakcí. " +
-                    "Vzhledem k náročnosti vrací status 202 a běží na pozadí."
+            description = "Spustí proces úplné aktualizace dat. Zahrnuje informace o účtu, portfoliu i celou historii transakcí. "
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "202", description = "Synchronizace byla přijata a zařazena do fronty"),
+            @ApiResponse(responseCode = "200", description = "Synchronizace proběhla"),
     })
     @PostMapping("/full")
     public ResponseEntity<Void> performFullSync() {
         syncService.performFullSync();
-        return ResponseEntity.accepted().build();
+        return ResponseEntity.ok().build();
     }
 
     @Operation(

@@ -28,8 +28,8 @@ public record TransactionDto(
                 example = "BUY")
         TradeSide side,
 
-        @Schema(description = "Počet zobchodovaných kusů (může být i frakce)",
-                example = "1.52345678")
+        @Schema(description = "Počet zobchodovaných kusů",
+                example = "1.52")
         BigDecimal quantity,
 
         @Schema(description = "Realizovaná cena za jeden kus v měně instrumentu",
@@ -37,7 +37,7 @@ public record TransactionDto(
         BigDecimal price,
 
         @Schema(description = "Použitý směnný kurz mezi měnou instrumentu a měnou účtu",
-                example = "23.45")
+                example = "0.048")
         BigDecimal fxRate,
 
         @Schema(description = "Celková čistá hodnota transakce v měně účtu",
@@ -51,7 +51,7 @@ public record TransactionDto(
                 example = "2026-04-19T16:50:19")
         LocalDateTime filledAt,
 
-        @Schema(description = "Realizovaný zisk nebo ztráta")
+        @Schema(description = "Realizovaný zisk nebo ztráta podle Trading212")
         BigDecimal tradingPnl,
 
         @Schema(description = "Skutečný realizovaný zisk nebo ztráta (očištěno od FX poplatku)")
