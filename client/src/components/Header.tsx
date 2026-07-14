@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { ShieldCheck, Sun, Moon, RefreshCw, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync } from "@/api/tax212";
+import { getGetPortfolioQueryKey, getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync } from "@/api/tax212";
 import { Button } from "@/components/ui/button";
 
 const Header = () => {
@@ -36,6 +36,7 @@ const Header = () => {
                 queryClient.invalidateQueries({
                     queryKey: getGetYearlyReportQueryKey(new Date().getFullYear()),
                 });
+                queryClient.invalidateQueries({ queryKey: getGetPortfolioQueryKey() });
             },
             onError: (error) => {
                 console.error("Sync failed:", error);
@@ -55,13 +56,12 @@ const Header = () => {
                             Tax212
                         </h1>
                         <p className="mt-1 text-[10px] text-muted-foreground sm:text-xs md:text-sm truncate">
-                            Trading212 Portfolio &amp; Tax guard
+                            Trading212 Portfolio &amp; Tax Guard
                         </p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                    {/* Synchronizační tlačítko využívající shadcn Button */}
                     <Button
                         onClick={() => startSync()}
                         disabled={isPending}
@@ -83,7 +83,6 @@ const Header = () => {
                         )}
                     </Button>
 
-                    {/* Tlačítko pro přepínání témat s využitím shadcn Button */}
                     <Button
                         onClick={() => setIsDark(!isDark)}
                         variant="outline"

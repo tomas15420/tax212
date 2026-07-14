@@ -1,4 +1,4 @@
-import { Wallet, Layers, Coins, ArrowUpRight, ArrowDownRight, AlertTriangle } from "lucide-react";
+import { Wallet, Layers, Coins, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import KpiCard from "./KpiCard";
 import RealizedProfitCard from "./RealizedProfitCard";
 import { useGetSummary } from "@/api/tax212";

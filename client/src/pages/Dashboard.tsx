@@ -1,7 +1,7 @@
 import Dividends from '@/components/Dividends'
-import Portfolio from '@/components/Portfolio'
 import Transactions from '@/components/Transactions'
 import Overview from '@/features/overview/Overview'
+import Portfolio from '@/features/portfolio/Portfolio'
 import TaxOverview from '@/features/tax-overview/TaxOverview'
 
 
