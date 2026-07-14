@@ -1,6 +1,5 @@
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/utils/utils";
 
@@ -18,27 +17,24 @@ const RealizedProfitCard = ({ actualValue, tradingValue, currency }: RealizedPro
     const isTradingPositive = tradingNum >= 0;
 
     return (
-        <Card className="group relative overflow-hidden transition-all duration-300 border-border/50 bg-background/50 backdrop-blur-sm hover:-translate-y-0.5 hover:border-primary/15 hover:shadow-lg hover:shadow-primary/5 sm:col-span-2">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 transition-opacity duration-500 group-hover:opacity-100" />
-
-            <CardContent className="relative z-10 p-3.5 md:p-6">
+        <Card className="sm:col-span-2">
+            <CardContent className="p-4 md:p-6">
                 <div className="flex flex-col gap-3 md:gap-4">
 
-                    {/* Hlavička s dynamickou ikonou */}
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-medium text-muted-foreground md:text-sm">
                             Realizovaný zisk
                         </span>
                         <div className={cn(
-                            "rounded-md p-1.5 md:p-2 transition-all duration-300 group-hover:scale-105",
+                            "rounded-md p-1.5 md:p-2",
                             isActualPositive
-                                ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
-                                : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                ? "bg-emerald-500/10 text-emerald-500"
+                                : "bg-rose-500/10 text-rose-500"
                         )}>
                             {isActualPositive ? (
-                                <TrendingUp className="h-4 w-4 transition-transform group-hover:rotate-3" />
+                                <TrendingUp className="h-4 w-4" />
                             ) : (
-                                <TrendingDown className="h-4 w-4 transition-transform group-hover:-rotate-3" />
+                                <TrendingDown className="h-4 w-4" />
                             )}
                         </div>
                     </div>
@@ -56,8 +52,8 @@ const RealizedProfitCard = ({ actualValue, tradingValue, currency }: RealizedPro
                                 </span>
                             </div>
                             <strong className={cn(
-                                "text-sm font-bold tracking-tight md:text-xl md:mt-1 block transition-colors duration-300",
-                                isActualPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                                "text-sm font-bold tracking-tight md:text-xl md:mt-1 block",
+                                isActualPositive ? "text-emerald-500" : "text-rose-500"
                             )}>
                                 {formatCurrency(actualValue, currency, true)}
                             </strong>
@@ -76,8 +72,8 @@ const RealizedProfitCard = ({ actualValue, tradingValue, currency }: RealizedPro
                                 </span>
                             </div>
                             <strong className={cn(
-                                "text-sm font-bold tracking-tight md:text-xl md:mt-1 block transition-colors duration-300",
-                                isTradingPositive ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"
+                                "text-sm font-bold tracking-tight md:text-xl md:mt-1 block",
+                                isTradingPositive ? "text-emerald-500" : "text-rose-500"
                             )}>
                                 {formatCurrency(tradingValue, currency, true)}
                             </strong>

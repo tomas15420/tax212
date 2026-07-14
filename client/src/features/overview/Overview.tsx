@@ -5,9 +5,10 @@ import { useGetSummary } from "@/api/tax212";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/utils/utils";
+import { ErrorCard } from "@/components/ErrorCard";
 
 const Overview = () => {
-  const { data, isLoading, isError } = useGetSummary();
+  const { data, isLoading, isError, refetch } = useGetSummary();
 
   if (isLoading) {
     return (
@@ -50,23 +51,7 @@ const Overview = () => {
     );
   }
 
-  if (isError) {
-    return (
-      <Card className="border-destructive/20 bg-destructive/5 dark:bg-destructive/10">
-        <CardContent className="flex flex-col items-center justify-center p-6 text-center md:p-10">
-          <div className="rounded-full bg-destructive/10 p-3 text-destructive">
-            <AlertTriangle className="h-6 w-6" />
-          </div>
-          <h3 className="mt-4 text-lg font-semibold text-foreground">
-            Chyba při načítání dat
-          </h3>
-          <p className="mt-2 text-sm text-muted-foreground max-w-xs">
-            Nepodařilo se připojit k API. Zkontrolujte prosím připojení k serveru a zkuste to znovu.
-          </p>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (isError) return <ErrorCard onRetry={refetch} />;
 
   const summary = data?.status === 200 ? data?.data : null;
   const currency = summary?.currency || "CZK";

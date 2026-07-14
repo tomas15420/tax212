@@ -1,17 +1,41 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ShieldCheck, Sun, Moon, RefreshCw, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
-import { getGetSummaryQueryKey, usePerformFullSync } from "@/api/tax212";
-import { cn } from "@/lib/utils";
+import { getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync } from "@/api/tax212";
+import { Button } from "@/components/ui/button";
 
 const Header = () => {
-    const [isDark, setIsDark] = useState(false);
     const queryClient = useQueryClient();
+
+    const [isDark, setIsDark] = useState(() => {
+        if (typeof window !== "undefined") {
+            return (
+                localStorage.getItem("theme") === "dark" ||
+                (!("theme" in localStorage) &&
+                    window.matchMedia("(prefers-color-scheme: dark)").matches)
+            );
+        }
+        return false;
+    });
+
+    useEffect(() => {
+        const root = window.document.documentElement;
+        if (isDark) {
+            root.classList.add("dark");
+            localStorage.setItem("theme", "dark");
+        } else {
+            root.classList.remove("dark");
+            localStorage.setItem("theme", "light");
+        }
+    }, [isDark]);
 
     const { mutate: startSync, isPending } = usePerformFullSync({
         mutation: {
             onSuccess: () => {
                 queryClient.invalidateQueries({ queryKey: getGetSummaryQueryKey() });
+                queryClient.invalidateQueries({
+                    queryKey: getGetYearlyReportQueryKey(new Date().getFullYear()),
+                });
             },
             onError: (error) => {
                 console.error("Sync failed:", error);
@@ -22,8 +46,6 @@ const Header = () => {
     return (
         <header className="border-b bg-background px-4 py-3 md:px-6">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-                
-                {/* Logo a branding sekce */}
                 <div className="flex min-w-0 items-center gap-2 md:gap-3">
                     <div className="rounded-lg bg-primary/10 p-2 text-primary shrink-0">
                         <ShieldCheck className="h-5 w-5 md:h-6 md:w-6" />
@@ -38,18 +60,14 @@ const Header = () => {
                     </div>
                 </div>
 
-                {/* Akční tlačítka */}
                 <div className="flex items-center gap-2 shrink-0">
-                    
-                    {/* Synchronizační tlačítko - responzivní šířka */}
-                    <button
+                    {/* Synchronizační tlačítko využívající shadcn Button */}
+                    <Button
                         onClick={() => startSync()}
                         disabled={isPending}
-                        className={cn(
-                            "inline-flex h-9 items-center justify-center rounded-md bg-primary text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
-                            // Na mobilu čtverec (w-9), od 'sm' se přizpůsobí textu (w-auto px-4)
-                            "w-9 sm:w-auto sm:px-4 sm:gap-1.5"
-                        )}
+                        variant="default"
+                        size="sm"
+                        className="h-9 w-9 p-0 sm:w-auto sm:px-4 sm:py-2 gap-1.5"
                         aria-label="Aktualizovat data"
                     >
                         {isPending ? (
@@ -63,22 +81,23 @@ const Header = () => {
                                 <span className="hidden sm:inline">Aktualizovat</span>
                             </>
                         )}
-                    </button>
+                    </Button>
 
-                    {/* Dark mode přepínač */}
-                    <button
+                    {/* Tlačítko pro přepínání témat s využitím shadcn Button */}
+                    <Button
                         onClick={() => setIsDark(!isDark)}
+                        variant="outline"
+                        size="icon"
+                        className="h-9 w-9"
                         aria-label="Přepnout tmavý režim"
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring shrink-0"
                     >
                         {isDark ? (
-                            <Moon className="h-[1.2rem] w-[1.2rem] text-foreground" />
+                            <Moon className="h-[1.2rem] w-[1.2rem]" />
                         ) : (
-                            <Sun className="h-[1.2rem] w-[1.2rem] text-foreground" />
+                            <Sun className="h-[1.2rem] w-[1.2rem]" />
                         )}
-                    </button>
+                    </Button>
                 </div>
-
             </div>
         </header>
     );
