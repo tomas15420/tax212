@@ -161,10 +161,12 @@ export const Portfolio = () => {
                               <span className="font-bold text-foreground">{safePercentage} %</span>
                             </div>
 
-                            <Progress
-                              value={safePercentage}
-                              className="h-2 bg-emerald-500/10 [&>div]:bg-emerald-500"
-                            />
+                            <div className="w-full bg-amber-500/10 rounded-full h-3 overflow-hidden">
+                              <div
+                                className="h-full rounded-full transition-all duration-500 ease-out bg-emerald-500"
+                                style={{ width: `${safePercentage}%` }}
+                              />
+                            </div>
                           </div>
                         </TableCell>
                       </TableRow>

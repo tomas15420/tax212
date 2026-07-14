@@ -3,6 +3,7 @@ import { ShieldCheck, Sun, Moon, RefreshCw, Loader2 } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { getGetPortfolioQueryKey, getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync } from "@/api/tax212";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const Header = () => {
     const queryClient = useQueryClient();
@@ -31,15 +32,30 @@ const Header = () => {
 
     const { mutate: startSync, isPending } = usePerformFullSync({
         mutation: {
-            onSuccess: () => {
+            onSuccess: (data) => {
+                if (data.status > 299) {
+                    toast.error("Chyba při aktualizaci dat", {
+                        description: "Nepodařilo se aktualizovat data z Trading212 API.",
+                        position: "top-center",
+                    });
+                    return;
+                }
                 queryClient.invalidateQueries({ queryKey: getGetSummaryQueryKey() });
                 queryClient.invalidateQueries({
                     queryKey: getGetYearlyReportQueryKey(new Date().getFullYear()),
                 });
                 queryClient.invalidateQueries({ queryKey: getGetPortfolioQueryKey() });
+                toast.success("Data byla úspěšně aktualizována", {
+                    description: "Všechny informace byly úspěšně synchronizovány s Trading212 API.",
+                    position: "top-center",
+                });
             },
             onError: (error) => {
                 console.error("Sync failed:", error);
+                toast.error("Chyba při aktualizaci dat", {
+                    description: "Nepodařilo se aktualizovat data z Trading212 API.",
+                    position: "top-center",
+                });
             }
         }
     });

@@ -20,9 +20,9 @@ spring:
 # Vlastní nastavení pro aplikaci
 trading212:
   api:
-    url: https://demo.trading212.com/api/v0
-    username: ${T212_DEMO_KEY_ID}
-    password: ${T212_DEMO_KEY_SECRET}
+    url: https://live.trading212.com/api/v0
+    username: ${T212_KEY_ID}
+    password: ${T212_KEY_SECRET}
 tax:
   limits:
     stock-sales-czk: 100000
