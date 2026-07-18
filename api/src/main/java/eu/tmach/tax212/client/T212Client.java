@@ -4,10 +4,14 @@ import eu.tmach.tax212.dto.trading212.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.ClientHttpResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,17 +35,7 @@ public class T212Client {
             T212OrderPage page = t212RestClient.get()
                     .uri(finalPath)
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        int code = response.getStatusCode().value();
-                        switch (code) {
-                            case 400 -> throw new RuntimeException("400: Špatné parametry filtrování.");
-                            case 401 -> throw new RuntimeException("401: Neplatný API klíč.");
-                            case 403 -> throw new RuntimeException("403: Chybějící scope (history:orders).");
-                            case 408 -> throw new RuntimeException("408: Timeout při volání T212.");
-                            case 429 -> log.error("429: Rate limit překročen (i přes ochranu v interceptoru)!");
-                            default -> throw new RuntimeException("Chyba API: " + code);
-                        }
-                    })
+                    .onStatus(HttpStatusCode::isError, this::handleApiError)
                     .body(new ParameterizedTypeReference<>() {
                     });
 
@@ -72,7 +66,7 @@ public class T212Client {
             }
         }
 
-        log.info("Synchronizace úspěšně dokončena. Celkem staženo {} objednávek.", allOrders.size());
+        log.info("Synchronizace úspěšně dokončena. Celkem staženo {} záznamů.", allOrders.size());
         return allOrders;
     }
 
@@ -82,18 +76,7 @@ public class T212Client {
         return t212RestClient.get()
                 .uri("/equity/account/summary")
                 .retrieve()
-                .onStatus(HttpStatusCode::isError, (request, response) -> {
-                    int code = response.getStatusCode().value();
-                    switch (code) {
-                        case 400 -> throw new RuntimeException("400: Špatné parametry filtrování.");
-                        case 401 -> throw new RuntimeException("401: Neplatný API klíč.");
-                        case 403 -> throw new RuntimeException("403: Chybějící scope (account).");
-                        case 408 -> throw new RuntimeException("408: Timeout při volání T212.");
-                        case 429 -> log.error("429: Rate limit překročen (i přes ochranu v interceptoru)!");
-                        default -> throw new RuntimeException("Chyba API: " + code);
-                    }
-                    throw new RuntimeException("Chyba při získávání stavu účtu: " + code);
-                })
+                .onStatus(HttpStatusCode::isError, this::handleApiError)
                 .body(T212AccountSummary.class);
     }
 
@@ -109,17 +92,7 @@ public class T212Client {
             T212DividendPage page = t212RestClient.get()
                     .uri(finalPath)
                     .retrieve()
-                    .onStatus(HttpStatusCode::isError, (request, response) -> {
-                        int code = response.getStatusCode().value();
-                        switch (code) {
-                            case 400 -> throw new RuntimeException("400: Špatné parametry filtrování.");
-                            case 401 -> throw new RuntimeException("401: Neplatný API klíč.");
-                            case 403 -> throw new RuntimeException("403: Chybějící scope (history:dividends).");
-                            case 408 -> throw new RuntimeException("408: Timeout při volání T212.");
-                            case 429 -> log.error("429: Rate limit překročen!");
-                            default -> throw new RuntimeException("Chyba API: " + code);
-                        }
-                    })
+                    .onStatus(HttpStatusCode::isError, this::handleApiError)
                     .body(T212DividendPage.class);
 
             if (page != null && page.items() != null) {
@@ -148,5 +121,18 @@ public class T212Client {
 
         log.info("Synchronizace dividend dokončena. Celkem {} záznamů.", allDividends.size());
         return allDividends;
+    }
+
+    private void handleApiError(HttpRequest request, ClientHttpResponse response) throws IOException {
+        HttpStatusCode status = response.getStatusCode();
+
+        throw switch (status.value()) {
+            case 401 -> new ResponseStatusException(status, "401: Neplatný API klíč.");
+            case 403 -> new ResponseStatusException(status, "403: Chybějící scope pro API klíč.");
+            case 408 -> new ResponseStatusException(status, "408: Timeout při volání T212.");
+            case 429 -> new ResponseStatusException(status, "429: Rate limit překročen.");
+            case 400 -> new ResponseStatusException(status, "400: Špatný požadavek.");
+            default -> new ResponseStatusException(status, "Neočekávaná chyba API: " + status);
+        };
     }
 }

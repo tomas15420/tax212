@@ -1,6 +1,7 @@
 package eu.tmach.tax212.service;
 
 import eu.tmach.tax212.client.T212Client;
+import eu.tmach.tax212.config.TaxProperties;
 import eu.tmach.tax212.dto.PagedResponse;
 import eu.tmach.tax212.dto.PortfolioStatusDto;
 import eu.tmach.tax212.dto.PortfolioStatusItemDto;
@@ -18,17 +19,13 @@ import eu.tmach.tax212.repository.spec.TransactionSpecifications;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -41,9 +38,7 @@ public class TransactionService {
     private final InstrumentService instrumentService;
     private final TransactionMapper transactionMapper;
     private final InstrumentMapper instrumentMapper;
-
-    @Value("${tax.limits.time-test-years:3}")
-    private int timeTestYears;
+    private final TaxProperties taxProperties;
 
     public PagedResponse<TransactionDto> getTransactions(TransactionFilter filter) {
         TransactionFilter safeFilter = (filter != null) ? filter : new TransactionFilter();
@@ -84,7 +79,7 @@ public class TransactionService {
                             BigDecimal remaining = t.getRemainingQuantity();
 
                             if (remaining != null && remaining.compareTo(BigDecimal.ZERO) > 0) {
-                                boolean isTaxFree = t.getFilledAt().plusYears(timeTestYears).isBefore(toDate);
+                                boolean isTaxFree = t.getFilledAt().plusYears(taxProperties.getHoldingPeriodYears()).isBefore(toDate);
                                 if (isTaxFree) {
                                     taxFreeQty = taxFreeQty.add(remaining);
                                 } else {
@@ -148,7 +143,6 @@ public class TransactionService {
                             .orElse(null);
 
                     return PortfolioStatusItemDto.builder()
-                            .timeTestYears(timeTestYears)
                             .ticker(ticker)
                             .instrument(instrumentMapper.toDto(instrument))
                             .availableQuantity(totalRemainingQty)
@@ -171,7 +165,9 @@ public class TransactionService {
                 .toList();
 
         return PortfolioStatusDto.builder()
-                .timeTestYears(timeTestYears)
+                .holdingPeriodYears(taxProperties.getHoldingPeriodYears())
+                .incidentalIncomeCap(taxProperties.getIncidentalIncomeCap())
+                .assetSaleAnnualCap(taxProperties.getAssetSaleAnnualCap())
                 .items(items)
                 .build();
     }
@@ -235,12 +231,15 @@ public class TransactionService {
                 .findAllByTickerAndSideAndRemainingQuantityGreaterThanOrderByFilledAtAsc(
                         sellTx.getTicker(), TradeSide.BUY, BigDecimal.ZERO);
 
+        ArrayDeque<Transaction> buyQueue = new ArrayDeque<>(availableBuys);
+
         BigDecimal toMatch = sellTx.getQuantity();
         BigDecimal tradingPnl = BigDecimal.ZERO;
         BigDecimal actualPnl = BigDecimal.ZERO;
+        List<Transaction> buyTransactions = new ArrayList<>();
 
-        for (Transaction buyTx : availableBuys) {
-            if (toMatch.compareTo(BigDecimal.ZERO) <= 0) break;
+        while (toMatch.compareTo(BigDecimal.ZERO) > 0 && !buyQueue.isEmpty()) {
+            Transaction buyTx = buyQueue.poll();
 
             BigDecimal buyRemaining = buyTx.getRemainingQuantity();
             BigDecimal quantityToTake = buyRemaining.min(toMatch);
@@ -249,7 +248,11 @@ public class TransactionService {
             actualPnl = actualPnl.add(calculatePartialPnl(sellTx, buyTx, quantityToTake, Transaction::getTradeValue));
 
             buyTx.setRemainingQuantity(buyRemaining.subtract(quantityToTake));
-            transactionRepository.save(buyTx);
+            buyTransactions.add(buyTx);
+
+            if (buyTx.getRemainingQuantity().compareTo(BigDecimal.ZERO) > 0) {
+                buyQueue.addFirst(buyTx);
+            }
 
             TradeMatch match = TradeMatch.builder()
                     .sell(sellTx)
@@ -258,12 +261,12 @@ public class TransactionService {
                     .build();
 
             sellTx.getMatchedBuys().add(match);
-
             toMatch = toMatch.subtract(quantityToTake);
 
             log.info("FIFO: Páruji prodej {} s nákupem {} (zbývá k dopárování: {}) | tpnl={} | apnl={}",
                     sellTx.getT212id(), buyTx.getT212id(), toMatch, tradingPnl, actualPnl);
         }
+        transactionRepository.saveAll(buyTransactions);
         sellTx.setActualPnl(tradingPnl);
         sellTx.setTradingPnl(actualPnl);
     }

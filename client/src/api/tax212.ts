@@ -61,15 +61,40 @@ export type syncTransactionsResponse200 = {
   status: 200
 }
 
+export type syncTransactionsResponse400 = {
+  data: void
+  status: 400
+}
+
+export type syncTransactionsResponse401 = {
+  data: void
+  status: 401
+}
+
+export type syncTransactionsResponse403 = {
+  data: void
+  status: 403
+}
+
+export type syncTransactionsResponse408 = {
+  data: void
+  status: 408
+}
+
+export type syncTransactionsResponse429 = {
+  data: void
+  status: 429
+}
+
 export type syncTransactionsResponse500 = {
-  data: ApiErrorResponse
+  data: void
   status: 500
 }
 
 export type syncTransactionsResponseSuccess = (syncTransactionsResponse200) & {
   headers: Headers;
 };
-export type syncTransactionsResponseError = (syncTransactionsResponse500) & {
+export type syncTransactionsResponseError = (syncTransactionsResponse400 | syncTransactionsResponse401 | syncTransactionsResponse403 | syncTransactionsResponse408 | syncTransactionsResponse429 | syncTransactionsResponse500) & {
   headers: Headers;
 };
 
@@ -109,7 +134,7 @@ export const syncTransactions = async ( options?: RequestInit): Promise<syncTran
 
 
 
-export const getSyncTransactionsMutationOptions = <TError = ApiErrorResponse,
+export const getSyncTransactionsMutationOptions = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncTransactions>>, TError,void, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof syncTransactions>>, TError,void, TContext> => {
 
@@ -138,12 +163,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type SyncTransactionsMutationResult = NonNullable<Awaited<ReturnType<typeof syncTransactions>>>
 
-    export type SyncTransactionsMutationError = ApiErrorResponse
+    export type SyncTransactionsMutationError = void
 
     /**
  * @summary Synchronizace transakcí
  */
-export const useSyncTransactions = <TError = ApiErrorResponse,
+export const useSyncTransactions = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncTransactions>>, TError,void, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof syncTransactions>>,
@@ -159,15 +184,40 @@ export type performFullSyncResponse200 = {
   status: 200
 }
 
+export type performFullSyncResponse400 = {
+  data: void
+  status: 400
+}
+
+export type performFullSyncResponse401 = {
+  data: void
+  status: 401
+}
+
+export type performFullSyncResponse403 = {
+  data: void
+  status: 403
+}
+
+export type performFullSyncResponse408 = {
+  data: void
+  status: 408
+}
+
+export type performFullSyncResponse429 = {
+  data: void
+  status: 429
+}
+
 export type performFullSyncResponse500 = {
-  data: ApiErrorResponse
+  data: void
   status: 500
 }
 
 export type performFullSyncResponseSuccess = (performFullSyncResponse200) & {
   headers: Headers;
 };
-export type performFullSyncResponseError = (performFullSyncResponse500) & {
+export type performFullSyncResponseError = (performFullSyncResponse400 | performFullSyncResponse401 | performFullSyncResponse403 | performFullSyncResponse408 | performFullSyncResponse429 | performFullSyncResponse500) & {
   headers: Headers;
 };
 
@@ -207,7 +257,7 @@ export const performFullSync = async ( options?: RequestInit): Promise<performFu
 
 
 
-export const getPerformFullSyncMutationOptions = <TError = ApiErrorResponse,
+export const getPerformFullSyncMutationOptions = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof performFullSync>>, TError,void, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof performFullSync>>, TError,void, TContext> => {
 
@@ -236,12 +286,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type PerformFullSyncMutationResult = NonNullable<Awaited<ReturnType<typeof performFullSync>>>
 
-    export type PerformFullSyncMutationError = ApiErrorResponse
+    export type PerformFullSyncMutationError = void
 
     /**
  * @summary Kompletní synchronizace
  */
-export const usePerformFullSync = <TError = ApiErrorResponse,
+export const usePerformFullSync = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof performFullSync>>, TError,void, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof performFullSync>>,
@@ -257,15 +307,40 @@ export type syncDividendsResponse200 = {
   status: 200
 }
 
+export type syncDividendsResponse400 = {
+  data: void
+  status: 400
+}
+
+export type syncDividendsResponse401 = {
+  data: void
+  status: 401
+}
+
+export type syncDividendsResponse403 = {
+  data: void
+  status: 403
+}
+
+export type syncDividendsResponse408 = {
+  data: void
+  status: 408
+}
+
+export type syncDividendsResponse429 = {
+  data: void
+  status: 429
+}
+
 export type syncDividendsResponse500 = {
-  data: ApiErrorResponse
+  data: void
   status: 500
 }
 
 export type syncDividendsResponseSuccess = (syncDividendsResponse200) & {
   headers: Headers;
 };
-export type syncDividendsResponseError = (syncDividendsResponse500) & {
+export type syncDividendsResponseError = (syncDividendsResponse400 | syncDividendsResponse401 | syncDividendsResponse403 | syncDividendsResponse408 | syncDividendsResponse429 | syncDividendsResponse500) & {
   headers: Headers;
 };
 
@@ -305,7 +380,7 @@ export const syncDividends = async ( options?: RequestInit): Promise<syncDividen
 
 
 
-export const getSyncDividendsMutationOptions = <TError = ApiErrorResponse,
+export const getSyncDividendsMutationOptions = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncDividends>>, TError,void, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof syncDividends>>, TError,void, TContext> => {
 
@@ -334,12 +409,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type SyncDividendsMutationResult = NonNullable<Awaited<ReturnType<typeof syncDividends>>>
 
-    export type SyncDividendsMutationError = ApiErrorResponse
+    export type SyncDividendsMutationError = void
 
     /**
  * @summary Synchronizace dividend
  */
-export const useSyncDividends = <TError = ApiErrorResponse,
+export const useSyncDividends = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncDividends>>, TError,void, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof syncDividends>>,
@@ -355,15 +430,40 @@ export type syncAccountDetailsResponse200 = {
   status: 200
 }
 
+export type syncAccountDetailsResponse400 = {
+  data: void
+  status: 400
+}
+
+export type syncAccountDetailsResponse401 = {
+  data: void
+  status: 401
+}
+
+export type syncAccountDetailsResponse403 = {
+  data: void
+  status: 403
+}
+
+export type syncAccountDetailsResponse408 = {
+  data: void
+  status: 408
+}
+
+export type syncAccountDetailsResponse429 = {
+  data: void
+  status: 429
+}
+
 export type syncAccountDetailsResponse500 = {
-  data: ApiErrorResponse
+  data: void
   status: 500
 }
 
 export type syncAccountDetailsResponseSuccess = (syncAccountDetailsResponse200) & {
   headers: Headers;
 };
-export type syncAccountDetailsResponseError = (syncAccountDetailsResponse500) & {
+export type syncAccountDetailsResponseError = (syncAccountDetailsResponse400 | syncAccountDetailsResponse401 | syncAccountDetailsResponse403 | syncAccountDetailsResponse408 | syncAccountDetailsResponse429 | syncAccountDetailsResponse500) & {
   headers: Headers;
 };
 
@@ -403,7 +503,7 @@ export const syncAccountDetails = async ( options?: RequestInit): Promise<syncAc
 
 
 
-export const getSyncAccountDetailsMutationOptions = <TError = ApiErrorResponse,
+export const getSyncAccountDetailsMutationOptions = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncAccountDetails>>, TError,void, TContext>, fetch?: RequestInit}
 ): UseMutationOptions<Awaited<ReturnType<typeof syncAccountDetails>>, TError,void, TContext> => {
 
@@ -432,12 +532,12 @@ const {mutation: mutationOptions, fetch: fetchOptions} = options ?
 
     export type SyncAccountDetailsMutationResult = NonNullable<Awaited<ReturnType<typeof syncAccountDetails>>>
 
-    export type SyncAccountDetailsMutationError = ApiErrorResponse
+    export type SyncAccountDetailsMutationError = void
 
     /**
  * @summary Synchronizace detailů účtu
  */
-export const useSyncAccountDetails = <TError = ApiErrorResponse,
+export const useSyncAccountDetails = <TError = void,
     TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof syncAccountDetails>>, TError,void, TContext>, fetch?: RequestInit}
  , queryClient?: QueryClient): UseMutationResult<
         Awaited<ReturnType<typeof syncAccountDetails>>,

@@ -8,8 +8,12 @@ import java.util.List;
 @Schema(description = "Stav portfolia")
 @Builder
 public record PortfolioStatusDto(
-        @Schema(description = "Doba časového testu", example = "3")
-        Integer timeTestYears,
+        @Schema(description = "Doba časového testu")
+        Integer holdingPeriodYears,
+        @Schema(description = "Roční limit prodeje aktiv")
+        Integer assetSaleAnnualCap,
+        @Schema(description = "Roční limit okamžitých příjmů")
+        Integer incidentalIncomeCap,
         @Schema(description = "Seznam aktiv v portfoliu a jejich stav")
         List<PortfolioStatusItemDto> items) {
 }

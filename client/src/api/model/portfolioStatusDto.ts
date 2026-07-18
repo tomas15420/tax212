@@ -12,7 +12,11 @@ import type { PortfolioStatusItemDto } from './portfolioStatusItemDto';
  */
 export interface PortfolioStatusDto {
   /** Doba časového testu */
-  timeTestYears?: number;
+  holdingPeriodYears?: number;
+  /** Roční limit prodeje aktiv */
+  assetSaleAnnualCap?: number;
+  /** Roční limit okamžitých příjmů */
+  incidentalIncomeCap?: number;
   /** Seznam aktiv v portfoliu a jejich stav */
   items?: PortfolioStatusItemDto[];
 }

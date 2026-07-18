@@ -43,44 +43,21 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleNotFound(HttpServletRequest request) {
-        return ResponseEntity.status(404).body(
-                ApiErrorResponse.builder()
-                        .status(404)
-                        .message("Not Found")
-                        .path(request.getRequestURI())
-                        .timestamp(LocalDateTime.now())
-                        .build()
-        );
+        return createError(404, "Not Found", request.getRequestURI());
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ApiErrorResponse> handleMethodNotAllowed(HttpServletRequest request) {
-        return ResponseEntity.status(405).body(
-                ApiErrorResponse.builder()
-                        .status(405)
-                        .message("Method Not Allowed")
-                        .path(request.getRequestURI())
-                        .timestamp(LocalDateTime.now())
-                        .build()
-        );
+        return createError(405, "Method Not Allowed", request.getRequestURI());
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<ApiErrorResponse> handleRSE(
+    public ResponseEntity<ApiErrorResponse> handleResponseStatusException(
             ResponseStatusException ex,
             HttpServletRequest request
     ) {
-
         int status = ex.getStatusCode().value();
-
-        return ResponseEntity.status(status).body(
-                ApiErrorResponse.builder()
-                        .status(status)
-                        .message(ex.getReason())
-                        .path(request.getRequestURI())
-                        .timestamp(LocalDateTime.now())
-                        .build()
-        );
+        return createError(status, ex.getReason(), request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)
@@ -89,11 +66,15 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
 
-        return ResponseEntity.status(500).body(
+        return createError(500, "Internal Server Error: " + ex.getMessage(), request.getRequestURI());
+    }
+
+    private ResponseEntity<ApiErrorResponse> createError(int status, String message, String path) {
+        return ResponseEntity.status(status).body(
                 ApiErrorResponse.builder()
-                        .status(500)
-                        .message(ex.getMessage())
-                        .path(request.getRequestURI())
+                        .status(status)
+                        .message(message)
+                        .path(path)
                         .timestamp(LocalDateTime.now())
                         .build()
         );

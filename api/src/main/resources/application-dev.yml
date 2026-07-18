@@ -10,14 +10,11 @@ spring:
     properties:
       hibernate:
         format_sql: true
-
-  # OpenAPI / Swagger konfigurace
   springdoc:
     swagger-ui:
       path: /swagger-ui.html
     api-docs:
       path: /v3/api-docs
-# Vlastní nastavení pro aplikaci
 trading212:
   api:
     url: https://live.trading212.com/api/v0
@@ -25,6 +22,6 @@ trading212:
     password: ${T212_KEY_SECRET}
 tax:
   limits:
-    stock-sales-czk: 100000
-    other-income-czk: 50000
-    time-test-years: 3
+    asset-sale-annual-cap: 100000
+    incidental-income-cap: 20000
+    holding-period-years: 3

@@ -11,8 +11,6 @@ import type { InstrumentDto } from './instrumentDto';
  * Detailní stav konkrétního aktiva v portfoliu
  */
 export interface PortfolioStatusItemDto {
-  /** Počet let pro splnění časového testu (typicky 3 roky v ČR) */
-  timeTestYears?: number;
   /** Burzovní symbol aktiva */
   ticker?: string;
   /** Detailní informace o instrumentu */

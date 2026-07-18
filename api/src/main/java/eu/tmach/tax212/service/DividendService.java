@@ -46,7 +46,7 @@ public class DividendService {
         List<T212DividendItem> remoteDividends = t212Client.fetchAllDividends(lastSavedT212Id);
 
         if (remoteDividends.isEmpty()) {
-            log.info("Nenalezeny žádné nové transakce k synchronizaci.");
+            log.info("Nenalezeny žádné nové dividendy k synchronizaci.");
             return;
         }
 

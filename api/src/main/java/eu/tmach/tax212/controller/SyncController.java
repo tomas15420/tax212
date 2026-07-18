@@ -31,6 +31,12 @@ public class SyncController {
     )
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Synchronizace proběhla"),
+            @ApiResponse(responseCode = "400", description = "Chybný požadavek"),
+            @ApiResponse(responseCode = "401", description = "Chybný API Key"),
+            @ApiResponse(responseCode = "403", description = "Chybějící scope pro API klíč"),
+            @ApiResponse(responseCode = "408", description = "Timeout při komunikaci s Trading212 API"),
+            @ApiResponse(responseCode = "429", description = "Překročen limit požadavků na API"),
+            @ApiResponse(responseCode = "500", description = "Chyba při synchronizaci")
     })
     @PostMapping("/full")
     public ResponseEntity<Void> performFullSync() {
@@ -43,7 +49,13 @@ public class SyncController {
             description = "Aktualizuje seznam transakcí od posledního známého stavu."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Transakce byly úspěšně aktualizovány"),
+            @ApiResponse(responseCode = "200", description = "Synchronizace proběhla"),
+            @ApiResponse(responseCode = "400", description = "Chybný požadavek"),
+            @ApiResponse(responseCode = "401", description = "Chybný API Key"),
+            @ApiResponse(responseCode = "403", description = "Chybějící scope pro API klíč"),
+            @ApiResponse(responseCode = "408", description = "Timeout při komunikaci s Trading212 API"),
+            @ApiResponse(responseCode = "429", description = "Překročen limit požadavků na API"),
+            @ApiResponse(responseCode = "500", description = "Chyba při synchronizaci")
     })
     @PostMapping("/transactions")
     public ResponseEntity<Void> syncTransactions() {
@@ -56,7 +68,13 @@ public class SyncController {
             description = "Aktualizuje seznam dividend od posledního známého stavu."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Dividendy byly úspěšně aktualizovány"),
+            @ApiResponse(responseCode = "200", description = "Synchronizace proběhla"),
+            @ApiResponse(responseCode = "400", description = "Chybný požadavek"),
+            @ApiResponse(responseCode = "401", description = "Chybný API Key"),
+            @ApiResponse(responseCode = "403", description = "Chybějící scope pro API klíč"),
+            @ApiResponse(responseCode = "408", description = "Timeout při komunikaci s Trading212 API"),
+            @ApiResponse(responseCode = "429", description = "Překročen limit požadavků na API"),
+            @ApiResponse(responseCode = "500", description = "Chyba při synchronizaci")
     })
     @PostMapping("/dividends")
     public ResponseEntity<Void> syncDividends() {
@@ -69,7 +87,13 @@ public class SyncController {
             description = "Aktualizuje aktuální zůstatky, volnou hotovost a nastavení účtu."
     )
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Detaily účtu byly úspěšně synchronizovány"),
+            @ApiResponse(responseCode = "200", description = "Synchronizace proběhla"),
+            @ApiResponse(responseCode = "400", description = "Chybný požadavek"),
+            @ApiResponse(responseCode = "401", description = "Chybný API Key"),
+            @ApiResponse(responseCode = "403", description = "Chybějící scope pro API klíč"),
+            @ApiResponse(responseCode = "408", description = "Timeout při komunikaci s Trading212 API"),
+            @ApiResponse(responseCode = "429", description = "Překročen limit požadavků na API"),
+            @ApiResponse(responseCode = "500", description = "Chyba při synchronizaci")
     })
     @PostMapping("/account")
     public ResponseEntity<Void> syncAccountDetails() {

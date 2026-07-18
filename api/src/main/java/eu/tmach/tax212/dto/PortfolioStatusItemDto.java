@@ -8,10 +8,6 @@ import java.math.BigDecimal;
 @Schema(description = "Detailní stav konkrétního aktiva v portfoliu")
 @Builder
 public record PortfolioStatusItemDto(
-
-        @Schema(description = "Počet let pro splnění časového testu (typicky 3 roky v ČR)", example = "3")
-        Integer timeTestYears,
-
         @Schema(description = "Burzovní symbol aktiva", example = "AAPL")
         String ticker,
 
