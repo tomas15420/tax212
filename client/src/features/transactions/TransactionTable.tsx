@@ -130,18 +130,6 @@ export const TransactionsTable = ({ pagedTransactions, isLoading }: Transactions
                             </TableRow>
                         );
                     })}
-                    {totalItems > currentLength && (
-                        <TableRow>
-                            <TableCell colSpan={7} className="text-center py-4">
-                                <Link
-                                    to="/transactions"
-                                    className="text-sm text-primary font-medium hover:underline focus:outline-none inline-block"
-                                >
-                                    Zobrazit dalších {totalItems - currentLength} položek
-                                </Link>
-                            </TableCell>
-                        </TableRow>
-                    )}
                 </TableBody>
             </Table>
         </div>

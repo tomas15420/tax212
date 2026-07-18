@@ -10,12 +10,8 @@ export default defineConfig({
             client: 'react-query',
             mock: false,
             baseUrl: 'http://localhost:8080',
-            // override: {
-            //     mutator: {
-            //         path: './src/api/api.ts',
-            //         name: 'customInstance',
-            //     },
-            // }
+
+
         }
     }
 });

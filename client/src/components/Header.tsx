@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, Sun, Moon, RefreshCw, Loader2, Menu } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { getGetPortfolioQueryKey, getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync } from "@/api/tax212";
+import { getGetPortfolioQueryKey, getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync, getGetTransactionsQueryKey} from "@/api/tax212";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast, Toaster } from "sonner";
@@ -48,6 +48,7 @@ const Header = () => {
                     queryKey: getGetYearlyReportQueryKey(new Date().getFullYear()),
                 });
                 queryClient.invalidateQueries({ queryKey: getGetPortfolioQueryKey() });
+                queryClient.invalidateQueries({ queryKey: getGetTransactionsQueryKey() });
                 toast.success("Data byla úspěšně aktualizována", {
                     description: "Všechny informace byly úspěšně synchronizovány s Trading212 API.",
                     position: "top-center",
