@@ -4,7 +4,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCurrency } from "@/utils/utils";
 import { cn } from "@/lib/utils";
@@ -12,9 +11,11 @@ import { useGetPortfolio } from "@/api/tax212";
 import { ErrorCard } from "@/components/ErrorCard";
 
 const currentDate = new Date().toISOString();
+const INITIAL_LIMIT = 5;
 
 export const Portfolio = () => {
   const [showSold, setShowSold] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const { data, isLoading, isError, refetch } = useGetPortfolio({ "date": currentDate, "includeSold": showSold });
 
   const portfolio = data?.status === 200 ? data?.data : null;
@@ -35,6 +36,8 @@ export const Portfolio = () => {
     return <ErrorCard onRetry={refetch} />;
   }
 
+  const displayItems = isExpanded ? items : items.slice(0, INITIAL_LIMIT);
+
   return (
     <TooltipProvider>
       <Card className="w-full">
@@ -42,7 +45,7 @@ export const Portfolio = () => {
           <div className="space-y-1">
             <CardTitle className="text-xl font-bold md:text-2xl">Stav portfolia</CardTitle>
             <CardDescription>
-              Přehled otevřených pozic a plnění {portfolio?.timeTestYears || 3}letého časového testu
+              Přehled otevřených pozic a plnění {portfolio?.holdingPeriodYears || 3}letého časového testu
             </CardDescription>
           </div>
 
@@ -72,8 +75,8 @@ export const Portfolio = () => {
                   <TableHead className="w-[100px] pl-4 md:pl-6">Ticker</TableHead>
                   <TableHead>Název</TableHead>
                   <TableHead className="text-right">Celkem kusů</TableHead>
-                  <TableHead className="text-right">Průměrná nákupka</TableHead>
-                  <TableHead className="text-center">Splněno ({portfolio?.timeTestYears || 3}y test)</TableHead>
+                  <TableHead className="text-right">Průměrný nákup</TableHead>
+                  <TableHead className="text-center">Splněno ({portfolio?.holdingPeriodYears || 3}y test)</TableHead>
                   <TableHead className="w-[280px] pr-4 md:pr-6">Detail časového testu</TableHead>
                 </TableRow>
               </TableHeader>
@@ -85,7 +88,7 @@ export const Portfolio = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  items.map((item) => {
+                  displayItems.map((item) => {
                     const totalQty = item.availableQuantity || 0;
                     const safeQty = item.taxFreeQuantity || 0;
                     const inTaxQty = item.inTaxQuantity || 0;
@@ -127,7 +130,7 @@ export const Portfolio = () => {
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Už držíte déle než {portfolio?.timeTestYears || 3} roky (osvobozeno od daně)</p>
+                                <p>Už držíte déle než {portfolio?.holdingPeriodYears || 3} roky (osvobozeno od daně)</p>
                               </TooltipContent>
                             </Tooltip>
 
@@ -146,7 +149,7 @@ export const Portfolio = () => {
                                 </Badge>
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p>Pozice zakoupené v posledních {portfolio?.timeTestYears || 3} letech (podléhá dani)</p>
+                                <p>Pozice zakoupené v posledních {portfolio?.holdingPeriodYears || 3} letech (podléhá dani)</p>
                               </TooltipContent>
                             </Tooltip>
                           </div>
@@ -172,6 +175,18 @@ export const Portfolio = () => {
                       </TableRow>
                     );
                   })
+                )}
+                {items.length > INITIAL_LIMIT && (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      <button
+                        onClick={() => setIsExpanded(!isExpanded)}
+                        className="text-sm text-primary font-medium hover:underline focus:outline-none"
+                      >
+                        {isExpanded ? "Zobrazit méně" : `Zobrazit dalších ${items.length - INITIAL_LIMIT} položek`}
+                      </button>
+                    </TableCell>
+                  </TableRow>
                 )}
               </TableBody>
             </Table>

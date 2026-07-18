@@ -20,6 +20,10 @@ export interface TaxReportDto {
   totalSoldTaxable?: number;
   /** Celková hrubá výše přijatých dividend v CZK (před zdaněním v zahraničí) */
   totalDividendsPaid?: number;
+  /** Roční limit prodeje aktiv */
+  assetSaleAnnualCap?: number;
+  /** Roční limit okamžitých příjmů */
+  incidentalIncomeCap?: number;
   /** Seznam všech realizovaných prodejních transakcí v daném roce */
   transactions?: TransactionDto[];
   /** Seznam všech přijatých dividend v daném roce */

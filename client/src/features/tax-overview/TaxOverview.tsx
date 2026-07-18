@@ -8,9 +8,6 @@ import { useGetYearlyReport } from "@/api/tax212";
 import { StatCard } from "./StatCard";
 import { LimitCard } from "./LimitCard";
 
-const LIMIT_SALES = 100000;
-const LIMIT_DIVIDENDS = 20000;
-
 const TaxOverview = () => {
     const currentYear = new Date().getFullYear();
     const { data, isLoading, isError, refetch } = useGetYearlyReport(currentYear);
@@ -18,13 +15,13 @@ const TaxOverview = () => {
     const taxData = data?.status === 200 ? data?.data : null;
 
     const salesPercentage = useMemo(() =>
-        Math.min(Math.round(((taxData?.totalSoldTaxable || 0) / LIMIT_SALES) * 100), 100),
-        [taxData?.totalSoldTaxable]
+        Math.min(Math.round(((taxData?.totalSoldTaxable ?? 0) / (taxData?.assetSaleAnnualCap ?? 1)) * 100), 100),
+        [taxData?.totalSoldTaxable, taxData?.assetSaleAnnualCap]
     );
 
     const dividendsPercentage = useMemo(() =>
-        Math.min(Math.round(((taxData?.totalDividendsPaid || 0) / LIMIT_DIVIDENDS) * 100), 100),
-        [taxData?.totalDividendsPaid]
+        Math.min(Math.round(((taxData?.totalDividendsPaid ?? 0) / (taxData?.incidentalIncomeCap ?? 1)) * 100), 100),
+        [taxData?.totalDividendsPaid, taxData?.incidentalIncomeCap]
     );
 
     const totalSales = (taxData?.totalSoldTaxFree || 0) + (taxData?.totalSoldTaxable || 0);
@@ -83,17 +80,17 @@ const TaxOverview = () => {
                 <LimitCard
                     title="Prodáno zdanitelné"
                     currentValue={taxData?.totalSoldTaxable || 0}
-                    limitValue={LIMIT_SALES}
+                    limitValue={taxData?.assetSaleAnnualCap || 0}
                     percentage={salesPercentage}
-                    description={`Limit ${formatCurrency(LIMIT_SALES, "CZK")} ročních příjmů pro kompletní osvobození od daně z prodeje cenných papírů (tzv. hodnotový test).`}
+                    description={`Limit ${formatCurrency(taxData?.assetSaleAnnualCap || 0, "CZK")} ročních příjmů pro kompletní osvobození od daně z prodeje cenných papírů (tzv. hodnotový test).`}
                 />
 
                 <LimitCard
                     title="Vyplaceno dividend"
                     currentValue={taxData?.totalDividendsPaid || 0}
-                    limitValue={LIMIT_DIVIDENDS}
+                    limitValue={taxData?.incidentalIncomeCap || 0}
                     percentage={dividendsPercentage}
-                    description={`Limit ${formatCurrency(LIMIT_DIVIDENDS, "CZK")} pro ostatní příjmy.`}
+                    description={`Limit ${formatCurrency(taxData?.incidentalIncomeCap || 0, "CZK")} pro ostatní příjmy.`}
                 />
             </div>
         </section>

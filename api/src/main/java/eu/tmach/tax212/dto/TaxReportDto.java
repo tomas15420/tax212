@@ -31,6 +31,12 @@ public record TaxReportDto(
         )
         BigDecimal totalDividendsPaid,
 
+        @Schema(description = "Roční limit prodeje aktiv")
+        Integer assetSaleAnnualCap,
+        
+        @Schema(description = "Roční limit okamžitých příjmů")
+        Integer incidentalIncomeCap,
+
         @Schema(description = "Seznam všech realizovaných prodejních transakcí v daném roce")
         List<TransactionDto> transactions,
 

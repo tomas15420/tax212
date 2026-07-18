@@ -1,5 +1,6 @@
 package eu.tmach.tax212.service;
 
+import eu.tmach.tax212.config.TaxProperties;
 import eu.tmach.tax212.dto.TaxReportDto;
 import eu.tmach.tax212.mapper.DividendMapper;
 import eu.tmach.tax212.mapper.TransactionMapper;
@@ -28,6 +29,8 @@ public class TaxService {
 
     private final TransactionMapper transactionMapper;
     private final DividendMapper dividendMapper;
+
+    private final TaxProperties taxProperties;
 
     @Value("${tax.limits.time-test-years:3}")
     private int timeTestYears;
@@ -74,6 +77,8 @@ public class TaxService {
                 .totalSoldTaxFree(taxFreeSum)
                 .totalSoldTaxable(taxableSum)
                 .totalDividendsPaid(totalDividendsPaid)
+                .assetSaleAnnualCap(taxProperties.getAssetSaleAnnualCap())
+                .incidentalIncomeCap(taxProperties.getIncidentalIncomeCap())
                 .transactions(sales.stream().map(transactionMapper::toDto).toList())
                 .dividends(dividends.stream().map(dividendMapper::toDto).toList())
                 .build();

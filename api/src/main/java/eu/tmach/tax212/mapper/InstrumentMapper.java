@@ -18,10 +18,11 @@ public interface InstrumentMapper {
     @Named("cleanTicker")
     default String cleanTicker(String ticker) {
         if (ticker == null) return null;
-        String[] parts = ticker.split("_");
-        if (parts.length >= 2 && !"US".equals(parts[1])) {
-            return parts[0] + "." + parts[1];
+        String clean = ticker.split("_")[0];
+
+        if (clean.length() > 1 && clean.endsWith("d")) {
+            return clean.substring(0, clean.length() - 1);
         }
-        return parts[0];
+        return clean;
     }
 }
