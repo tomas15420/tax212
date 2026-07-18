@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 import java.math.BigDecimal;
 
-@Mapper(componentModel = "spring")
+@Mapper(componentModel = "spring", uses = {InstrumentMapper.class})
 public interface TransactionMapper {
     TransactionDto toDto(Transaction transaction);
 

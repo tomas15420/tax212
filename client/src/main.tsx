@@ -33,7 +33,6 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-// Service Worker (nechat takto)
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js', { scope: '/' })

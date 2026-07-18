@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DashboardRouteImport } from './routes/Dashboard'
 import { Route as DividendsRouteImport } from './routes/Dividends'
-import { Route as TransactionsRouteImport } from './routes/Transactions'
+import { Route as TransactionsRouteImport } from './routes/transactions'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -30,8 +30,8 @@ const DividendsRoute = DividendsRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransactionsRoute = TransactionsRouteImport.update({
-  id: '/Transactions',
-  path: '/Transactions',
+  id: '/transactions',
+  path: '/transactions',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -39,27 +39,27 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/Dashboard': typeof DashboardRoute
   '/Dividends': typeof DividendsRoute
-  '/Transactions': typeof TransactionsRoute
+  '/transactions': typeof TransactionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/Dashboard': typeof DashboardRoute
   '/Dividends': typeof DividendsRoute
-  '/Transactions': typeof TransactionsRoute
+  '/transactions': typeof TransactionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/Dashboard': typeof DashboardRoute
   '/Dividends': typeof DividendsRoute
-  '/Transactions': typeof TransactionsRoute
+  '/transactions': typeof TransactionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/Dashboard' | '/Dividends' | '/Transactions'
+  fullPaths: '/' | '/Dashboard' | '/Dividends' | '/transactions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/Dashboard' | '/Dividends' | '/Transactions'
-  id: '__root__' | '/' | '/Dashboard' | '/Dividends' | '/Transactions'
+  to: '/' | '/Dashboard' | '/Dividends' | '/transactions'
+  id: '__root__' | '/' | '/Dashboard' | '/Dividends' | '/transactions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -92,10 +92,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DividendsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/Transactions': {
-      id: '/Transactions'
-      path: '/Transactions'
-      fullPath: '/Transactions'
+    '/transactions': {
+      id: '/transactions'
+      path: '/transactions'
+      fullPath: '/transactions'
       preLoaderRoute: typeof TransactionsRouteImport
       parentRoute: typeof rootRouteImport
     }

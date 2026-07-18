@@ -1,5 +1,5 @@
 import DividendsCompact from '@/components/DividendsCompact'
-import TransactionsCompact from '@/components/TransactionsCompact'
+import TransactionsCompact from '@/features/transactions/TransactionsCompact'
 import Overview from '@/features/overview/Overview'
 import Portfolio from '@/features/portfolio/Portfolio'
 import TaxOverview from '@/features/tax-overview/TaxOverview'
@@ -18,7 +18,7 @@ const Dashboard = () => {
 }
 
 export const Route = createFileRoute('/Dashboard')({
-  component: Dashboard,
+    component: Dashboard,
 });
 
 
