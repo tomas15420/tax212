@@ -1,12 +1,15 @@
 import { useState, useEffect } from "react";
-import { ShieldCheck, Sun, Moon, RefreshCw, Loader2 } from "lucide-react";
+import { ShieldCheck, Sun, Moon, RefreshCw, Loader2, Menu } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { getGetPortfolioQueryKey, getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync } from "@/api/tax212";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast } from "sonner";
 
 const Header = () => {
     const queryClient = useQueryClient();
+    const [isOpen, setIsOpen] = useState(false);
 
     const [isDark, setIsDark] = useState(() => {
         if (typeof window !== "undefined") {
@@ -60,21 +63,43 @@ const Header = () => {
         }
     });
 
+    const navLinks = [
+        { to: "/", label: "Dashboard" },
+        { to: "/transactions", label: "Transakce" },
+        { to: "/dividends", label: "Dividendy" },
+    ];
+
     return (
         <header className="border-b bg-background px-4 py-3 md:px-6">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-4">
-                <div className="flex min-w-0 items-center gap-2 md:gap-3">
-                    <div className="rounded-lg bg-primary/10 p-2 text-primary shrink-0">
-                        <ShieldCheck className="h-5 w-5 md:h-6 md:w-6" />
+                <div className="flex flex-1 items-center gap-6 min-w-0">
+                    <div className="flex min-w-0 items-center gap-2 md:gap-3">
+                        <div className="rounded-lg bg-primary/10 p-2 text-primary shrink-0">
+                            <ShieldCheck className="h-5 w-5 md:h-6 md:w-6" />
+                        </div>
+                        <div className="min-w-0">
+                            <h1 className="text-base font-bold tracking-tight text-foreground md:text-xl leading-none">
+                                Tax212
+                            </h1>
+                            <p className="mt-1 text-[10px] text-muted-foreground sm:text-xs md:text-sm truncate">
+                                Trading212 Portfolio &amp; Tax Guard
+                            </p>
+                        </div>
                     </div>
-                    <div className="min-w-0">
-                        <h1 className="text-base font-bold tracking-tight text-foreground md:text-xl leading-none">
-                            Tax212
-                        </h1>
-                        <p className="mt-1 text-[10px] text-muted-foreground sm:text-xs md:text-sm truncate">
-                            Trading212 Portfolio &amp; Tax Guard
-                        </p>
-                    </div>
+
+                    <nav className="hidden md:flex items-center gap-1">
+                        {navLinks.map((item) => (
+                            <Link
+                                key={item.to}
+                                to={item.to}
+                                className="px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-muted/50 rounded-md"
+                                activeProps={{ className: "text-foreground bg-muted font-semibold" }}
+                                activeOptions={item.to === "/" ? { exact: true } : undefined}
+                            >
+                                {item.label}
+                            </Link>
+                        ))}
+                    </nav>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
@@ -84,7 +109,6 @@ const Header = () => {
                         variant="default"
                         size="sm"
                         className="h-9 w-9 p-0 sm:w-auto sm:px-4 sm:py-2 gap-1.5"
-                        aria-label="Aktualizovat data"
                     >
                         {isPending ? (
                             <>
@@ -104,7 +128,6 @@ const Header = () => {
                         variant="outline"
                         size="icon"
                         className="h-9 w-9"
-                        aria-label="Přepnout tmavý režim"
                     >
                         {isDark ? (
                             <Moon className="h-[1.2rem] w-[1.2rem]" />
@@ -112,6 +135,34 @@ const Header = () => {
                             <Sun className="h-[1.2rem] w-[1.2rem]" />
                         )}
                     </Button>
+
+                    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                        <SheetTrigger>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-9 w-9 md:hidden"
+                            >
+                                <Menu className="h-5 w-5" />
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="right" className="w-[240px] sm:w-[300px] pt-12">
+                            <nav className="flex flex-col gap-2">
+                                {navLinks.map((item) => (
+                                    <Link
+                                        key={item.to}
+                                        to={item.to}
+                                        onClick={() => setIsOpen(false)}
+                                        className="px-3 py-2 text-base font-medium text-muted-foreground transition-colors hover:text-foreground hover:bg-muted/50 rounded-md"
+                                        activeProps={{ className: "text-foreground bg-muted font-semibold" }}
+                                        activeOptions={item.to === "/" ? { exact: true } : undefined}
+                                    >
+                                        {item.label}
+                                    </Link>
+                                ))}
+                            </nav>
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
         </header>

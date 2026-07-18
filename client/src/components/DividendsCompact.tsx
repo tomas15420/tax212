@@ -1,9 +1,9 @@
 import React from 'react'
 
-const Dividends = () => {
+const DividendsCompact = () => {
   return (
     <div>Dividends</div>
   )
 }
 
-export default Dividends
+export default DividendsCompact

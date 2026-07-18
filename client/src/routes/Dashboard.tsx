@@ -1,9 +1,9 @@
-import Dividends from '@/components/Dividends'
-import Transactions from '@/components/Transactions'
+import DividendsCompact from '@/components/DividendsCompact'
+import TransactionsCompact from '@/components/TransactionsCompact'
 import Overview from '@/features/overview/Overview'
 import Portfolio from '@/features/portfolio/Portfolio'
 import TaxOverview from '@/features/tax-overview/TaxOverview'
-
+import { createFileRoute } from '@tanstack/react-router'
 
 const Dashboard = () => {
     return (
@@ -11,10 +11,15 @@ const Dashboard = () => {
             <Overview />
             <TaxOverview />
             <Portfolio />
-            <Transactions />
-            <Dividends />
+            <TransactionsCompact />
+            <DividendsCompact />
         </>
     )
 }
+
+export const Route = createFileRoute('/Dashboard')({
+  component: Dashboard,
+});
+
 
 export default Dashboard
