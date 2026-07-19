@@ -9,6 +9,7 @@ import { formatCurrency } from "@/utils/utils";
 import { cn } from "@/lib/utils";
 import { useGetPortfolio } from "@/api/tax212";
 import { ErrorCard } from "@/components/ErrorCard";
+import PortfolioLoadingSkeleton from "./PortfolioLoadingSkeleton";
 
 const currentDate = new Date().toISOString();
 const INITIAL_LIMIT = 5;
@@ -22,14 +23,7 @@ export const Portfolio = () => {
   const items = portfolio?.items || [];
 
   if (isLoading && !portfolio) {
-    return (
-      <Card className="w-full flex items-center justify-center p-12">
-        <div className="text-center space-y-2">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto" />
-          <p className="text-sm text-muted-foreground">Načítám portfolio...</p>
-        </div>
-      </Card>
-    );
+    return <PortfolioLoadingSkeleton rows={INITIAL_LIMIT} />;
   }
 
   if (isError) {

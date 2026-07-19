@@ -2,7 +2,7 @@
 
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import TransactionFilter, { type TransactionFilters } from "./TransactionFilter"
-import { parseISO } from "date-fns"
+import { format } from "date-fns"
 import type { TransactionSearchBlock } from "@/routes/transactions"
 import { GetTransactionsSide } from "@/api/model/getTransactionsSide"
 import { useGetTransactions } from "@/api/tax212"
@@ -10,6 +10,14 @@ import { TransactionsTable } from "./TransactionTable"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
+import { ErrorCard } from "@/components/ErrorCard"
+import { TransactionsLoadingSkeleton } from "./TransactionsLoadingSkeleton"
+
+const parseLocalDate = (dateStr: string | undefined) => {
+    if (!dateStr) return undefined
+    const [year, month, day] = dateStr.split("-").map(Number)
+    return new Date(year, month - 1, day)
+}
 
 export default function TransactionsPage() {
     const search = useSearch({ from: "/transactions" }) as TransactionSearchBlock
@@ -24,25 +32,23 @@ export default function TransactionsPage() {
     }, [search.name, search.ticker, search.isin, search.side, search.from, search.to])
 
     const currentFilters = useMemo<TransactionFilters>(() => {
+        const fromDate = parseLocalDate(search.from)
+        const toDate = parseLocalDate(search.to)
+
         return {
             name: search.name || "",
             ticker: search.ticker || "",
             isin: search.isin || "",
             side: search.side || "all",
-            dateRange: search.from ? {
-                from: parseISO(search.from),
-                to: search.to ? parseISO(search.to) : undefined
-            } : undefined
+            dateRange: fromDate ? { from: fromDate, to: toDate } : undefined
         }
-    }, [search])
+    }, [search.name, search.ticker, search.isin, search.side, search.from, search.to])
 
-    const apiSide = useMemo(() => {
-        if (search.side === "buy") return GetTransactionsSide.BUY
-        if (search.side === "sell") return GetTransactionsSide.SELL
-        return undefined
-    }, [search.side])
+    const apiSide = search.side === "buy" ? GetTransactionsSide.BUY
+        : search.side === "sell" ? GetTransactionsSide.SELL
+            : undefined
 
-    const { data, isLoading, isFetching } = useGetTransactions({
+    const { data, isLoading, isFetching, isError } = useGetTransactions({
         page: currentPage,
         size: 25,
         sort: ["filledAt.desc"],
@@ -52,26 +58,26 @@ export default function TransactionsPage() {
         side: apiSide,
         dateFrom: search.from || undefined,
         dateTo: search.to || undefined,
-    });
+    })
 
-    const apiResponse = data?.status === 200 ? data?.data : undefined;
+    const apiResponse = data?.status === 200 ? data?.data : undefined
 
     useEffect(() => {
         if (apiResponse?.items) {
             setAccumulatedTransactions((prev) => {
                 const items = apiResponse.items ?? []
+                if (currentPage === 0) return items
 
-                if (currentPage === 0) {
-                    return items;
-                }
-
-                const existingIds = new Set(prev.map((t) => t.id));
-                const newItems = items.filter((t) => !existingIds.has(t.id));
-
-                return [...prev, ...newItems];
-            });
+                const existingIds = new Set(prev.map((t) => t.id))
+                const newItems = items.filter((t) => !existingIds.has(t.id))
+                return [...prev, ...newItems]
+            })
         }
     }, [apiResponse, currentPage])
+
+    useEffect(() => {
+        setCurrentPage(0)
+    }, [search.name, search.ticker, search.isin, search.side, search.from, search.to])
 
     const hasNextPage =
         apiResponse?.totalPages !== undefined &&
@@ -85,20 +91,38 @@ export default function TransactionsPage() {
     }
 
     const handleFilterChange = useCallback((newFilters: TransactionFilters) => {
-        const searchParams: TransactionSearchBlock = {
-            name: newFilters.name || undefined,
-            ticker: newFilters.ticker || undefined,
-            isin: newFilters.isin || undefined,
-            side: newFilters.side !== "all" ? newFilters.side : undefined,
-            from: newFilters.dateRange?.from ? newFilters.dateRange.from.toISOString().split("T")[0] : undefined,
-            to: newFilters.dateRange?.to ? newFilters.dateRange.to.toISOString().split("T")[0] : undefined,
+        const formatDateForUrl = (date: Date | undefined) => {
+            if (!date) return undefined
+            return format(date, "yyyy-MM-dd")
+        }
+
+        const nextFrom = formatDateForUrl(newFilters.dateRange?.from)
+        const nextTo = formatDateForUrl(newFilters.dateRange?.to)
+
+        if (
+            (search.name || "") === newFilters.name &&
+            (search.ticker || "") === newFilters.ticker &&
+            (search.isin || "") === newFilters.isin &&
+            (search.side || "all") === newFilters.side &&
+            search.from === nextFrom &&
+            search.to === nextTo
+        ) {
+            return
         }
 
         navigate({
-            search: () => searchParams,
+            search: (prev) => ({
+                ...prev,
+                name: newFilters.name || undefined,
+                ticker: newFilters.ticker || undefined,
+                isin: newFilters.isin || undefined,
+                side: newFilters.side !== "all" ? newFilters.side : undefined,
+                from: nextFrom,
+                to: nextTo,
+            }),
             replace: true,
         })
-    }, [navigate])
+    }, [navigate, search])
 
     const pagedTransactionsForTable = useMemo(() => {
         if (apiResponse) {
@@ -122,6 +146,15 @@ export default function TransactionsPage() {
         return undefined;
     }, [apiResponse, accumulatedTransactions, currentPage]);
 
+
+    if (accumulatedTransactions.length === 0 && (isLoading || isFetching)) {
+        return <TransactionsLoadingSkeleton rowsCount={10} />;
+    }
+
+    if (isError) {
+        return <ErrorCard onRetry={refetch} />;
+    }
+
     return (
         <div className="container mx-auto space-y-6 p-6">
             <div>
@@ -137,7 +170,6 @@ export default function TransactionsPage() {
             <div className="min-h-[500px] w-full">
                 <TransactionsTable
                     pagedTransactions={pagedTransactionsForTable}
-                    isLoading={accumulatedTransactions.length === 0 && (isLoading || isFetching)}
                 />
             </div>
 

@@ -2,14 +2,25 @@ import { Link } from "@tanstack/react-router"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
 import { useGetTransactions } from "@/api/tax212";
 import { TransactionsTable } from "./TransactionTable";
+import { ErrorCard } from "@/components/ErrorCard";
+import { TransactionsLoadingSkeleton } from "./TransactionsLoadingSkeleton";
 
 const TransactionsCompact = () => {
-  const { data, isLoading } = useGetTransactions({ size: 10, sort: ["filledAt.desc"] });
+  const { data, isLoading, isError, refetch } = useGetTransactions({ size: 10, sort: ["filledAt.desc"] });
 
   const transactions = data?.status === 200 ? data?.data : undefined;
 
   const totalItems = transactions?.totalItems || 0;
   const currentLength = transactions?.items?.length || 0;
+
+  if (isLoading && !transactions) {
+    return <TransactionsLoadingSkeleton rowsCount={10} />;
+  }
+
+  if (isError) {
+    return <ErrorCard onRetry={refetch} />;
+  }
+
 
   return (
     <Card className="w-full">
@@ -23,7 +34,7 @@ const TransactionsCompact = () => {
       </CardHeader>
 
       <CardContent className="p-0">
-        <TransactionsTable pagedTransactions={transactions} isLoading={isLoading} />
+        <TransactionsTable pagedTransactions={transactions} />
       </CardContent>
 
       {totalItems > currentLength && (

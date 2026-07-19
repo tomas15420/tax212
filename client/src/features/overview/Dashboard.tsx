@@ -3,7 +3,6 @@ import TransactionsCompact from '@/features/transactions/TransactionsCompact'
 import Overview from '@/features/overview/Overview'
 import Portfolio from '@/features/portfolio/Portfolio'
 import TaxOverview from '@/features/tax-overview/TaxOverview'
-import { createFileRoute } from '@tanstack/react-router'
 
 const Dashboard = () => {
     return (
@@ -16,10 +15,5 @@ const Dashboard = () => {
         </>
     )
 }
-
-export const Route = createFileRoute('/Dashboard')({
-    component: Dashboard,
-});
-
 
 export default Dashboard

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { ShieldCheck, Sun, Moon, RefreshCw, Loader2, Menu } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { getGetPortfolioQueryKey, getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync, getGetTransactionsQueryKey} from "@/api/tax212";
+import { getGetPortfolioQueryKey, getGetSummaryQueryKey, getGetYearlyReportQueryKey, usePerformFullSync, getGetTransactionsQueryKey } from "@/api/tax212";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { toast, Toaster } from "sonner";
@@ -141,14 +141,8 @@ const Header = () => {
                         </Button>
 
                         <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                            <SheetTrigger>
-                                <Button
-                                    variant="outline"
-                                    size="icon"
-                                    className="h-9 w-9 md:hidden"
-                                >
-                                    <Menu className="h-5 w-5" />
-                                </Button>
+                            <SheetTrigger className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground h-9 w-9 md:hidden">
+                                <Menu className="h-5 w-5" />
                             </SheetTrigger>
                             <SheetContent side="right" className="w-[240px] sm:w-[300px] pt-12">
                                 <nav className="flex flex-col gap-2">

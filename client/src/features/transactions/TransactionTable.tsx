@@ -3,28 +3,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDateTime } from "@/utils/utils";
 import type { PagedResponseTransactionDto } from "@/api/model/pagedResponseTransactionDto";
-import { Link } from "@tanstack/react-router";
 
 interface TransactionsTableProps {
     pagedTransactions: PagedResponseTransactionDto | undefined;
-    isLoading: boolean;
 }
 
-export const TransactionsTable = ({ pagedTransactions, isLoading }: TransactionsTableProps) => {
+export const TransactionsTable = ({ pagedTransactions }: TransactionsTableProps) => {
     const transactions = pagedTransactions?.items;
-    const totalItems = pagedTransactions?.totalItems ?? 0;
     const currentLength = transactions?.length ?? 0;
-
-    if (isLoading) {
-        return (
-            <div className="flex h-48 w-full items-center justify-center rounded-xl border bg-card">
-                <div className="flex flex-col items-center gap-2 text-sm text-muted-foreground">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                    <span>Načítám transakce...</span>
-                </div>
-            </div>
-        );
-    }
 
     if (!transactions || currentLength === 0) {
         return (

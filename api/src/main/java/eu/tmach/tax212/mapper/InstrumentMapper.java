@@ -20,7 +20,7 @@ public interface InstrumentMapper {
         if (ticker == null) return null;
         String clean = ticker.split("_")[0];
 
-        if (clean.length() > 1 && clean.endsWith("d")) {
+        if (clean.length() > 1 && clean.substring(clean.length() - 1).matches("[a-z]")) {
             return clean.substring(0, clean.length() - 1);
         }
         return clean;
