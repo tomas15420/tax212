@@ -1,5 +1,3 @@
-"use client"
-
 import { useNavigate, useSearch } from "@tanstack/react-router"
 import TransactionFilter, { type TransactionFilters } from "./TransactionFilter"
 import { format } from "date-fns"
@@ -23,14 +21,6 @@ export default function TransactionsPage() {
     const search = useSearch({ from: "/transactions" }) as TransactionSearchBlock
     const navigate = useNavigate({ from: "/transactions" })
 
-    const [accumulatedTransactions, setAccumulatedTransactions] = useState<any[]>([])
-    const [currentPage, setCurrentPage] = useState(0)
-
-    useEffect(() => {
-        setAccumulatedTransactions([])
-        setCurrentPage(0)
-    }, [search.name, search.ticker, search.isin, search.side, search.from, search.to])
-
     const currentFilters = useMemo<TransactionFilters>(() => {
         const fromDate = parseLocalDate(search.from)
         const toDate = parseLocalDate(search.to)
@@ -44,20 +34,62 @@ export default function TransactionsPage() {
         }
     }, [search.name, search.ticker, search.isin, search.side, search.from, search.to])
 
-    const apiSide = search.side === "buy" ? GetTransactionsSide.BUY
-        : search.side === "sell" ? GetTransactionsSide.SELL
+    const [liveFilters, setLiveFilters] = useState<TransactionFilters>(currentFilters)
+    const [accumulatedTransactions, setAccumulatedTransactions] = useState<any[]>([])
+    const [currentPage, setCurrentPage] = useState(0)
+
+    useEffect(() => {
+        setLiveFilters((prevLive) => {
+            const hasChanged =
+                prevLive.name !== currentFilters.name ||
+                prevLive.ticker !== currentFilters.ticker ||
+                prevLive.isin !== currentFilters.isin ||
+                prevLive.side !== currentFilters.side ||
+                prevLive.dateRange?.from?.getTime() !== currentFilters.dateRange?.from?.getTime() ||
+                prevLive.dateRange?.to?.getTime() !== currentFilters.dateRange?.to?.getTime()
+
+            return hasChanged ? currentFilters : prevLive
+        })
+    }, [currentFilters])
+
+    const [lastAppliedFilters, setLastAppliedFilters] = useState(liveFilters)
+
+
+    useEffect(() => {
+        const hasFiltersChanged =
+            liveFilters.name !== lastAppliedFilters.name ||
+            liveFilters.ticker !== lastAppliedFilters.ticker ||
+            liveFilters.isin !== lastAppliedFilters.isin ||
+            liveFilters.side !== lastAppliedFilters.side ||
+            liveFilters.dateRange?.from?.getTime() !== lastAppliedFilters.dateRange?.from?.getTime() ||
+            liveFilters.dateRange?.to?.getTime() !== lastAppliedFilters.dateRange?.to?.getTime()
+
+        if (hasFiltersChanged) {
+            setAccumulatedTransactions([])
+            setCurrentPage(0)
+            setLastAppliedFilters(liveFilters)
+        }
+    }, [liveFilters, lastAppliedFilters])
+
+    const apiSide = liveFilters.side === "buy" ? GetTransactionsSide.BUY
+        : liveFilters.side === "sell" ? GetTransactionsSide.SELL
             : undefined
 
-    const { data, isLoading, isFetching, isError } = useGetTransactions({
+    const formatDateForApi = (date: Date | undefined) => {
+        if (!date) return undefined
+        return format(date, "yyyy-MM-dd")
+    }
+
+    const { data, isLoading, isFetching, isError, refetch } = useGetTransactions({
         page: currentPage,
         size: 25,
         sort: ["filledAt.desc"],
-        instrumentName: search.name || undefined,
-        ticker: search.ticker || undefined,
-        isin: search.isin || undefined,
+        instrumentName: liveFilters.name || undefined,
+        ticker: liveFilters.ticker || undefined,
+        isin: liveFilters.isin || undefined,
         side: apiSide,
-        dateFrom: search.from || undefined,
-        dateTo: search.to || undefined,
+        dateFrom: formatDateForApi(liveFilters.dateRange?.from),
+        dateTo: formatDateForApi(liveFilters.dateRange?.to),
     })
 
     const apiResponse = data?.status === 200 ? data?.data : undefined
@@ -75,10 +107,6 @@ export default function TransactionsPage() {
         }
     }, [apiResponse, currentPage])
 
-    useEffect(() => {
-        setCurrentPage(0)
-    }, [search.name, search.ticker, search.isin, search.side, search.from, search.to])
-
     const hasNextPage =
         apiResponse?.totalPages !== undefined &&
         apiResponse.page !== undefined &&
@@ -91,19 +119,23 @@ export default function TransactionsPage() {
     }
 
     const handleFilterChange = useCallback((newFilters: TransactionFilters) => {
+        setLiveFilters(newFilters)
+    }, [])
+
+    const handleUrlUpdate = useCallback((finalFilters: TransactionFilters) => {
         const formatDateForUrl = (date: Date | undefined) => {
             if (!date) return undefined
             return format(date, "yyyy-MM-dd")
         }
 
-        const nextFrom = formatDateForUrl(newFilters.dateRange?.from)
-        const nextTo = formatDateForUrl(newFilters.dateRange?.to)
+        const nextFrom = formatDateForUrl(finalFilters.dateRange?.from)
+        const nextTo = formatDateForUrl(finalFilters.dateRange?.to)
 
         if (
-            (search.name || "") === newFilters.name &&
-            (search.ticker || "") === newFilters.ticker &&
-            (search.isin || "") === newFilters.isin &&
-            (search.side || "all") === newFilters.side &&
+            (search.name || "") === finalFilters.name &&
+            (search.ticker || "") === finalFilters.ticker &&
+            (search.isin || "") === finalFilters.isin &&
+            (search.side || "all") === finalFilters.side &&
             search.from === nextFrom &&
             search.to === nextTo
         ) {
@@ -113,10 +145,10 @@ export default function TransactionsPage() {
         navigate({
             search: (prev) => ({
                 ...prev,
-                name: newFilters.name || undefined,
-                ticker: newFilters.ticker || undefined,
-                isin: newFilters.isin || undefined,
-                side: newFilters.side !== "all" ? newFilters.side : undefined,
+                name: finalFilters.name || undefined,
+                ticker: finalFilters.ticker || undefined,
+                isin: finalFilters.isin || undefined,
+                side: finalFilters.side !== "all" ? finalFilters.side : undefined,
                 from: nextFrom,
                 to: nextTo,
             }),
@@ -132,7 +164,6 @@ export default function TransactionsPage() {
             };
         }
 
-
         if (accumulatedTransactions.length > 0) {
             return {
                 items: accumulatedTransactions,
@@ -145,11 +176,6 @@ export default function TransactionsPage() {
 
         return undefined;
     }, [apiResponse, accumulatedTransactions, currentPage]);
-
-
-    if (accumulatedTransactions.length === 0 && (isLoading || isFetching)) {
-        return <TransactionsLoadingSkeleton rowsCount={10} />;
-    }
 
     if (isError) {
         return <ErrorCard onRetry={refetch} />;
@@ -164,33 +190,40 @@ export default function TransactionsPage() {
 
             <TransactionFilter
                 onFilterChange={handleFilterChange}
+                onUrlUpdate={handleUrlUpdate}
                 defaultValues={currentFilters}
             />
 
-            <div className="min-h-[500px] w-full">
-                <TransactionsTable
-                    pagedTransactions={pagedTransactionsForTable}
-                />
-            </div>
+            {accumulatedTransactions.length === 0 && (isLoading || isFetching) ? (
+                <TransactionsLoadingSkeleton rowsCount={10} />
+            ) : (
+                <>
+                    <div className="min-h-[500px] w-full">
+                        <TransactionsTable
+                            pagedTransactions={pagedTransactionsForTable}
+                        />
+                    </div>
 
-            {hasNextPage && (
-                <div className="flex justify-center pt-4">
-                    <Button
-                        onClick={handleLoadMore}
-                        disabled={isFetching}
-                        variant="outline"
-                        className="w-full max-w-xs"
-                    >
-                        {isFetching ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Načítám...
-                            </>
-                        ) : (
-                            "Načíst další"
-                        )}
-                    </Button>
-                </div>
+                    {hasNextPage && (
+                        <div className="flex justify-center pt-4">
+                            <Button
+                                onClick={handleLoadMore}
+                                disabled={isFetching}
+                                variant="outline"
+                                className="w-full max-w-xs"
+                            >
+                                {isFetching ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Načítám...
+                                    </>
+                                ) : (
+                                    "Načíst další"
+                                )}
+                            </Button>
+                        </div>
+                    )}
+                </>
             )}
         </div>
     )
