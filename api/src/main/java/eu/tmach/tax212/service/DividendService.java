@@ -9,9 +9,11 @@ import eu.tmach.tax212.mapper.DividendMapper;
 import eu.tmach.tax212.model.Dividend;
 import eu.tmach.tax212.model.Instrument;
 import eu.tmach.tax212.repository.DividendRepository;
+import eu.tmach.tax212.repository.spec.DividendSpecification;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
@@ -72,9 +74,9 @@ public class DividendService {
     public PagedResponse<DividendDto> getDividends(DividendFilter filter) {
         DividendFilter safeFilter = (filter != null) ? filter : new DividendFilter();
 
-        //Specification<Dividend> spec = TransactionSpecifications.withFilter(safeFilter);
+        Specification<Dividend> spec = DividendSpecification.withFilter(safeFilter);
 
-        PagedResponse<Dividend> dividendPage = PagedResponse.from(dividendRepository.findAll(safeFilter.toPageable()));
+        PagedResponse<Dividend> dividendPage = PagedResponse.from(dividendRepository.findAll(spec, safeFilter.toPageable()));
 
         return dividendPage.map(dividendMapper::toDto);
     }
