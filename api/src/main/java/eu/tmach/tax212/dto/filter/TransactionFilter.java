@@ -27,7 +27,8 @@ import java.time.LocalDate;
                 "price",
                 "walletImpact",
                 "filledAt",
-                "instrument.name"
+                "instrument.name",
+                "actualPnl"
         },
         message = "Řazení je povoleno pouze pro pole: id, ticker, side, quantity, price, walletImpact, filledAt, instrument.name"
 )

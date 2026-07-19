@@ -4,7 +4,7 @@ import { format } from "date-fns"
 import type { TransactionSearchBlock } from "@/routes/transactions"
 import { GetTransactionsSide } from "@/api/model/getTransactionsSide"
 import { useGetTransactions } from "@/api/tax212"
-import { TransactionsTable } from "./TransactionTable"
+import { TransactionsTable, type SortConfig, type TransactionSortField } from "./TransactionTable"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -34,6 +34,27 @@ export default function TransactionsPage() {
         }
     }, [search.name, search.ticker, search.isin, search.side, search.from, search.to])
 
+
+    const currentSort = useMemo<SortConfig | null>(() => {
+        if (!search.order) {
+            return { field: "filledAt", direction: "desc" };
+        }
+
+        const parts = search.order.split(".");
+        if (parts.length < 2) return { field: "filledAt", direction: "desc" };
+        const direction = parts.pop();
+        const field = parts.join(".");
+
+        if (direction !== "asc" && direction !== "desc") {
+            return { field: "filledAt", direction: "desc" };
+        }
+
+        return {
+            field: field as TransactionSortField,
+            direction: direction
+        };
+    }, [search.order]);
+
     const [liveFilters, setLiveFilters] = useState<TransactionFilters>(currentFilters)
     const [accumulatedTransactions, setAccumulatedTransactions] = useState<any[]>([])
     const [currentPage, setCurrentPage] = useState(0)
@@ -53,7 +74,7 @@ export default function TransactionsPage() {
     }, [currentFilters])
 
     const [lastAppliedFilters, setLastAppliedFilters] = useState(liveFilters)
-
+    const [lastAppliedSort, setLastAppliedSort] = useState<string | undefined>(search.order)
 
     useEffect(() => {
         const hasFiltersChanged =
@@ -64,12 +85,15 @@ export default function TransactionsPage() {
             liveFilters.dateRange?.from?.getTime() !== lastAppliedFilters.dateRange?.from?.getTime() ||
             liveFilters.dateRange?.to?.getTime() !== lastAppliedFilters.dateRange?.to?.getTime()
 
-        if (hasFiltersChanged) {
+        const hasSortChanged = search.order !== lastAppliedSort
+
+        if (hasFiltersChanged || hasSortChanged) {
             setAccumulatedTransactions([])
             setCurrentPage(0)
             setLastAppliedFilters(liveFilters)
+            setLastAppliedSort(search.order)
         }
-    }, [liveFilters, lastAppliedFilters])
+    }, [liveFilters, lastAppliedFilters, search.order, lastAppliedSort])
 
     const apiSide = liveFilters.side === "buy" ? GetTransactionsSide.BUY
         : liveFilters.side === "sell" ? GetTransactionsSide.SELL
@@ -80,10 +104,17 @@ export default function TransactionsPage() {
         return format(date, "yyyy-MM-dd")
     }
 
+    const apiSort = useMemo(() => {
+        if (search.order) {
+            return [search.order];
+        }
+        return ["filledAt.desc"];
+    }, [search.order]);
+
     const { data, isLoading, isFetching, isError, refetch } = useGetTransactions({
         page: currentPage,
         size: 25,
-        sort: ["filledAt.desc"],
+        sort: apiSort,
         instrumentName: liveFilters.name || undefined,
         ticker: liveFilters.ticker || undefined,
         isin: liveFilters.isin || undefined,
@@ -118,6 +149,26 @@ export default function TransactionsPage() {
         }
     }
 
+    const handleSort = useCallback((field: TransactionSortField) => {
+        let nextOrder: string;
+
+        if (currentSort?.field !== field) {
+            const defaultAscFields: TransactionSortField[] = ["instrument.name", "side"];
+            const direction = defaultAscFields.includes(field) ? "asc" : "desc";
+            nextOrder = `${field}.${direction}`;
+        } else {
+            const nextDirection = currentSort.direction === "asc" ? "desc" : "asc";
+            nextOrder = `${field}.${nextDirection}`;
+        }
+
+        navigate({
+            search: (prev) => ({
+                ...prev,
+                order: nextOrder,
+            }),
+            replace: true,
+        });
+    }, [currentSort, navigate]);
     const handleFilterChange = useCallback((newFilters: TransactionFilters) => {
         setLiveFilters(newFilters)
     }, [])
@@ -201,6 +252,8 @@ export default function TransactionsPage() {
                     <div className="min-h-[500px] w-full">
                         <TransactionsTable
                             pagedTransactions={pagedTransactionsForTable}
+                            sortConfig={currentSort}
+                            onSort={handleSort}
                         />
                     </div>
 

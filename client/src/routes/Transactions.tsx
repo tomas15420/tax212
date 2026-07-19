@@ -8,6 +8,7 @@ export type TransactionSearchBlock = {
     side?: "all" | "buy" | "sell"
     from?: string
     to?: string
+    order?: string
 }
 
 export const Route = createFileRoute('/transactions')({
@@ -19,6 +20,7 @@ export const Route = createFileRoute('/transactions')({
             side: (search.side as "all" | "buy" | "sell") || undefined,
             from: (search.from as string) || undefined,
             to: (search.to as string) || undefined,
+            order: (search.order as string) || undefined,
         }
     },
     component: RouteComponent,

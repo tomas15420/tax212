@@ -1,4 +1,4 @@
-import { format, isSameDay } from "date-fns"
+import { format, isSameDay, subMonths } from "date-fns"
 import { cs } from "date-fns/locale"
 import { Calendar as CalendarIcon, X } from "lucide-react"
 import type { DateRange } from "react-day-picker"
@@ -100,7 +100,7 @@ const TransactionFilter = ({ onFilterChange, onUrlUpdate, defaultValues }: Trans
         setIsin("")
         setSide("all")
         setDateRange(undefined)
-        
+
         const empty = { name: "", ticker: "", isin: "", side: "all" as const, dateRange: undefined }
         onFilterChange(empty)
         onUrlUpdate(empty)
@@ -255,7 +255,7 @@ const TransactionFilter = ({ onFilterChange, onUrlUpdate, defaultValues }: Trans
                                 <PopoverContent className="w-auto p-0" align="start">
                                     <Calendar
                                         mode="range"
-                                        defaultMonth={dateRange?.from}
+                                        defaultMonth={dateRange?.from ?? subMonths(new Date(), 1)}
                                         onSelect={handleDateSelect}
                                         selected={dateRange}
                                         numberOfMonths={2}
