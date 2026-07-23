@@ -1,4 +1,4 @@
-import DividendsCompact from '@/components/DividendsCompact'
+import DividendsCompact from '@/features/dividends/DividendsCompact'
 import TransactionsCompact from '@/features/transactions/TransactionsCompact'
 import Overview from '@/features/overview/Overview'
 import Portfolio from '@/features/portfolio/Portfolio'

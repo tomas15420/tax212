@@ -42,12 +42,12 @@ public class TransactionService {
 
     public PagedResponse<TransactionDto> getTransactions(TransactionFilter filter) {
         TransactionFilter safeFilter = (filter != null) ? filter : new TransactionFilter();
-
         Specification<Transaction> spec = TransactionSpecifications.withFilter(safeFilter);
 
-        PagedResponse<Transaction> transactionPage = PagedResponse.from(transactionRepository.findAll(spec, safeFilter.toPageable()));
-
-        return transactionPage.map(transactionMapper::toDto);
+        return PagedResponse.from(
+                transactionRepository.findAll(spec, safeFilter.toPageable()),
+                transactionMapper::toDto
+        );
     }
 
     public PortfolioStatusDto getAvailableAssets(LocalDateTime toDate, boolean includeSold) {
@@ -65,6 +65,7 @@ public class TransactionService {
                     BigDecimal taxableQty = BigDecimal.ZERO;
 
                     BigDecimal totalBuyCostForRemaining = BigDecimal.ZERO;
+                    BigDecimal totalCostValue = BigDecimal.ZERO;
                     BigDecimal totalBuyQty = BigDecimal.ZERO;
                     BigDecimal totalRemainingQty = BigDecimal.ZERO;
 
@@ -78,6 +79,11 @@ public class TransactionService {
                             totalBuyQty = totalBuyQty.add(t.getQuantity());
                             BigDecimal remaining = t.getRemainingQuantity();
 
+                            BigDecimal costValue = t.getQuantity().multiply(t.getPrice())
+                                    .divide(t.getFxRate(), 10, RoundingMode.HALF_UP);
+
+                            totalCostValue = totalCostValue.add(costValue);
+
                             if (remaining != null && remaining.compareTo(BigDecimal.ZERO) > 0) {
                                 boolean isTaxFree = t.getFilledAt().plusYears(taxProperties.getHoldingPeriodYears()).isBefore(toDate);
                                 if (isTaxFree) {
@@ -89,8 +95,10 @@ public class TransactionService {
                                 BigDecimal remainingCostValue = remaining.multiply(t.getPrice())
                                         .divide(t.getFxRate(), 10, RoundingMode.HALF_UP);
 
+
                                 totalBuyCostForRemaining = totalBuyCostForRemaining.add(remainingCostValue);
                                 totalRemainingQty = totalRemainingQty.add(remaining);
+
                             }
                         } else if (t.getSide() == TradeSide.SELL) {
                             totalSoldQty = totalSoldQty.add(t.getQuantity());
@@ -109,8 +117,8 @@ public class TransactionService {
                         }
                     }
 
-                    BigDecimal avgBuy = totalRemainingQty.compareTo(BigDecimal.ZERO) > 0
-                            ? totalBuyCostForRemaining.divide(totalRemainingQty, 10, RoundingMode.HALF_UP)
+                    BigDecimal avgBuy = totalBuyQty.compareTo(BigDecimal.ZERO) > 0
+                            ? totalCostValue.divide(totalBuyQty, 10, RoundingMode.HALF_UP)
                             : BigDecimal.ZERO;
 
                     BigDecimal avgSell = totalSoldQty.compareTo(BigDecimal.ZERO) > 0
@@ -120,18 +128,18 @@ public class TransactionService {
 
                     BigDecimal realizedGainPercent = BigDecimal.ZERO;
                     BigDecimal actualGainPercent = BigDecimal.ZERO;
-                    if (avgBuy.compareTo(BigDecimal.ZERO) > 0 && totalSoldQty.compareTo(BigDecimal.ZERO) > 0) {
-                        BigDecimal totalBuyCostForSold = totalSellValue.subtract(totalActualRealizedPnL);
-                        if (totalBuyCostForSold.compareTo(BigDecimal.ZERO) > 0) {
+                    if (avgBuy.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal actualCost = totalSellValue.subtract(totalActualRealizedPnL);
+                        if (actualCost.compareTo(BigDecimal.ZERO) > 0) {
                             actualGainPercent = totalActualRealizedPnL
-                                    .divide(totalBuyCostForSold, 10, RoundingMode.HALF_UP)
+                                    .divide(actualCost, 10, RoundingMode.HALF_UP)
                                     .multiply(BigDecimal.valueOf(100));
                         }
 
-                        BigDecimal totalTradingBuyCostForSold = totalSellValue.subtract(totalRealizedPnL);
-                        if (totalTradingBuyCostForSold.compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal tradingCost = totalSellValue.subtract(totalRealizedPnL);
+                        if (tradingCost.compareTo(BigDecimal.ZERO) > 0) {
                             realizedGainPercent = totalRealizedPnL
-                                    .divide(totalTradingBuyCostForSold, 10, RoundingMode.HALF_UP)
+                                    .divide(tradingCost, 10, RoundingMode.HALF_UP)
                                     .multiply(BigDecimal.valueOf(100));
                         }
                     }
@@ -152,7 +160,7 @@ public class TransactionService {
                             .totalSellsQuantity(totalSoldQty)
                             .averageBuyPrice(avgBuy.setScale(2, RoundingMode.HALF_UP))
                             .averageSellPrice(avgSell.setScale(2, RoundingMode.HALF_UP))
-                            .totalBuyCost(totalBuyCostForRemaining.setScale(2, RoundingMode.HALF_UP))
+                            .totalBuyCost(totalCostValue.setScale(2, RoundingMode.HALF_UP))
                             .totalSellValue(totalSellValue.setScale(2, RoundingMode.HALF_UP))
                             .realisedGainLoss(totalRealizedPnL.setScale(2, RoundingMode.HALF_UP))
                             .realizedGainLossPercent(realizedGainPercent.setScale(2, RoundingMode.HALF_UP))

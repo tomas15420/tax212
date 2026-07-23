@@ -8,13 +8,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE}) // Anotace bude nad celou třídou
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = SortFieldsValidator.class)
 public @interface ValidSortFields {
     String message() default "Neplatné pole pro řazení";
 
-    String[] allowed(); // Tady definujeme povolená pole
+    String[] allowed();
 
     Class<?>[] groups() default {};
 

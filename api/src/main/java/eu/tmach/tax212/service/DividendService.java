@@ -76,9 +76,10 @@ public class DividendService {
 
         Specification<Dividend> spec = DividendSpecification.withFilter(safeFilter);
 
-        PagedResponse<Dividend> dividendPage = PagedResponse.from(dividendRepository.findAll(spec, safeFilter.toPageable()));
-
-        return dividendPage.map(dividendMapper::toDto);
+        return PagedResponse.from(
+                dividendRepository.findAll(spec, safeFilter.toPageable()),
+                dividendMapper::toDto
+        );
     }
 
     public List<T212DividendItem> showDividends() {

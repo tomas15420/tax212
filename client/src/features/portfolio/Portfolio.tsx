@@ -39,7 +39,7 @@ export const Portfolio = () => {
           <div className="space-y-1">
             <CardTitle className="text-xl font-bold md:text-2xl">Stav portfolia</CardTitle>
             <CardDescription>
-              Přehled otevřených pozic a plnění {portfolio?.holdingPeriodYears || 3}letého časového testu
+              Přehled otevřených pozic a plnění {portfolio?.holdingPeriodYears || 3}letého časového testu.
             </CardDescription>
           </div>
 

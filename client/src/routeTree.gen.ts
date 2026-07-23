@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DividendsRouteImport } from './routes/Dividends'
+import { Route as DividendsRouteImport } from './routes/dividends'
 import { Route as TransactionsRouteImport } from './routes/transactions'
 
 const IndexRoute = IndexRouteImport.update({
@@ -19,8 +19,8 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const DividendsRoute = DividendsRouteImport.update({
-  id: '/Dividends',
-  path: '/Dividends',
+  id: '/dividends',
+  path: '/dividends',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TransactionsRoute = TransactionsRouteImport.update({
@@ -31,26 +31,26 @@ const TransactionsRoute = TransactionsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/Dividends': typeof DividendsRoute
+  '/dividends': typeof DividendsRoute
   '/transactions': typeof TransactionsRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/Dividends': typeof DividendsRoute
+  '/dividends': typeof DividendsRoute
   '/transactions': typeof TransactionsRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/Dividends': typeof DividendsRoute
+  '/dividends': typeof DividendsRoute
   '/transactions': typeof TransactionsRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/Dividends' | '/transactions'
+  fullPaths: '/' | '/dividends' | '/transactions'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/Dividends' | '/transactions'
-  id: '__root__' | '/' | '/Dividends' | '/transactions'
+  to: '/' | '/dividends' | '/transactions'
+  id: '__root__' | '/' | '/dividends' | '/transactions'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -68,10 +68,10 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/Dividends': {
-      id: '/Dividends'
-      path: '/Dividends'
-      fullPath: '/Dividends'
+    '/dividends': {
+      id: '/dividends'
+      path: '/dividends'
+      fullPath: '/dividends'
       preLoaderRoute: typeof DividendsRouteImport
       parentRoute: typeof rootRouteImport
     }
